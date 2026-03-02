@@ -10,7 +10,8 @@ function App() {
       .then((data) => {
         setStatus(`Backend status: ${data.status}`);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         setStatus("Backend not reachable");
       });
   }, []);
