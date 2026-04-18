@@ -1,34 +1,53 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import socket from '../socket';
 
-// Inline CheckersRules logic (mirrors games/Checkers.js for frontend use)
 class CheckersRules {
-  getInitialState() {
-    const board = Array(64).fill(null);
-    for (let i = 0; i < 64; i++) {
-      const row = Math.floor(i / 8);
-      const col = i % 8;
-      const isDarkSquare = (row + col) % 2 === 1;
-      if (!isDarkSquare) continue;
-      if (row <= 2) board[i] = 'b';
-      if (row >= 5) board[i] = 'r';
+  getInitialBoard() {
+  const board = Array(64).fill(null);
+
+  for (let i = 0; i < 64; i++) {
+    const row = Math.floor(i / 8);
+    const col = i % 8;
+
+    if ((row + col) % 2 === 0)
+    {
+      continue;
+    } 
+    if (row <= 2) 
+    {
+      board[i] = 'b';
     }
-    return { board, turn: 'r', winner: null };
+    if (row >= 5) 
+    {
+      board[i] = 'r';
+    }
   }
+
+  return {board, turn: 'r', winner: null};
+}
 
   getValidMoves(state) {
     const { board, turn } = state;
     const allMoves = [];
-    for (let i = 0; i < 64; i++) {
+    for (let i = 0; i < 64; i++) 
+      {
       const piece = board[i];
-      if (!piece) continue;
-      if (piece.toLowerCase() !== turn) continue;
+      if (!piece)
+        {
+          continue;
+        }
+      if (piece.toLowerCase() !== turn) 
+        {
+          continue;
+        }
       allMoves.push(...this._getMovesForPiece(board, i, piece));
     }
     const jumps = allMoves.filter(m => m.captures.length > 0);
     return jumps.length > 0 ? jumps : allMoves;
   }
 
-  isValidMove(state, move) {
+  isMoveValid(state, move){
     return this.getValidMoves(state).some(m => m.from === move.from && m.to === move.to);
   }
 
@@ -37,42 +56,89 @@ class CheckersRules {
     const piece = board[move.from];
     board[move.to] = piece;
     board[move.from] = null;
-    for (const capturedIdx of (move.captures || [])) board[capturedIdx] = null;
-    const row = Math.floor(move.to / 8);
-    if (piece === 'r' && row === 0) board[move.to] = 'R';
-    if (piece === 'b' && row === 7) board[move.to] = 'B';
-    const nextTurn = state.turn === 'r' ? 'b' : 'r';
-    const newState = { board, turn: nextTurn, winner: null };
-    newState.winner = this._checkWinner(newState);
-    return newState;
-  }
+    if (move.captures) 
+    {
+      for (let i = 0; i < move.captures.length; i++) 
+      {
+        board[move.captures[i]] = null;
+      }
+    }
+  const row = Math.floor(move.to / 8);
+  if (piece === 'r' && row === 0)
+    {
+      board[move.to] = 'R';
+    } 
+  if (piece === 'b' && row === 7)
+  {
+    board[move.to] = 'B';
+  } 
+
+  const nextTurn = state.turn === 'r' ? 'b' : 'r';
+
+  const newState = {
+    board,
+    turn: nextTurn,
+    winner: null
+  };
+
+  newState.winner = this._checkWinner(newState);
+
+  return newState;
+}
+
 
   isGameOver(state) { return state.winner !== null; }
 
   _getMovesForPiece(board, from, piece) {
     const moves = [];
-    const isKing = piece === piece.toUpperCase() && piece !== piece.toLowerCase();
-    const color = piece.toLowerCase();
-    const forwardDir = color === 'r' ? -1 : 1;
-    const dirs = isKing
-      ? [[-1,-1],[-1,1],[1,-1],[1,1]]
-      : [[forwardDir,-1],[forwardDir,1]];
-    for (const [dr, dc] of dirs) {
-      const toRow = Math.floor(from / 8) + dr;
-      const toCol = (from % 8) + dc;
-      if (!this._inBounds(toRow, toCol)) continue;
-      const to = toRow * 8 + toCol;
-      if (board[to] === null) {
-        moves.push({ from, to, captures: [] });
-      } else if (board[to].toLowerCase() !== color) {
-        const landRow = toRow + dr;
-        const landCol = toCol + dc;
-        if (!this._inBounds(landRow, landCol)) continue;
-        const land = landRow * 8 + landCol;
-        if (board[land] === null) moves.push({ from, to: land, captures: [to] });
-      }
+  const isKing = piece === 'R' || piece === 'B';
+  const color = piece.toLowerCase();
+
+  let dirs;
+  if (isKing) {
+    dirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+  } else {
+    const forward = color === 'r' ? -1 : 1;
+    dirs = [[forward, -1], [forward, 1]];
+  }
+  for (let d = 0; d < dirs.length; d++) {
+    const dr = dirs[d][0];
+    const dc = dirs[d][1];
+
+    const toRow = Math.floor(from / 8) + dr;
+    const toCol = (from % 8) + dc;
+
+    if (toRow < 0 || toRow > 7 || toCol < 0 || toCol > 7)
+    {
+      continue;
+    } 
+    const to = toRow * 8 + toCol;
+    if (board[to] === null) 
+    {
+      moves.push({ from, to, captures: [] });
+      continue;
     }
-    return moves;
+
+    if (board[to].toLowerCase() === color)
+      {
+        continue;
+      } 
+
+    const landRow = toRow + dr;
+    const landCol = toCol + dc;
+
+    if (landRow < 0 || landRow > 7 || landCol < 0 || landCol > 7) 
+    {
+      continue;
+    }
+    const land = landRow * 8 + landCol;
+    if (board[land] === null) 
+    {
+      moves.push({ from, to: land, captures: [to] });
+    }
+  }
+
+  return moves;
   }
 
   _inBounds(row, col) { return row >= 0 && row < 8 && col >= 0 && col < 8; }
@@ -91,10 +157,17 @@ class CheckersRules {
 const rules = new CheckersRules();
 
 export default function CheckersBoard() {
-  const [gameState, setGameState] = useState(() => rules.getInitialState());
+  const location = useLocation();
+  const { color, online } = location.state || {};
+
+  const [gameState, setGameState] = useState(() => rules.getInitialBoard());
   const [selected, setSelected] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const [lastMove, setLastMove] = useState(null);
+  const [statusMsg, setStatusMsg] = useState('');
+
+  const myColor = color || 'r';
+  const isMyTurn = !online || gameState.turn === myColor;
 
   // Recalculate valid moves when selection changes
   useEffect(() => {
@@ -106,13 +179,35 @@ export default function CheckersBoard() {
     }
   }, [selected, gameState]);
 
+  // Listen for opponent's moves over the socket
+  useEffect(() => {
+    if (!online)
+    {
+      return;
+    }
+
+    socket.on('opponentMove', (move) => {
+      setGameState(prev => rules.applyMove(prev, move));
+      setLastMove({ from: move.from, to: move.to });
+    });
+
+    socket.on('opponentDisconnected', () => {
+      setStatusMsg('Opponent disconnected.');
+    });
+
+    return () => {
+      socket.off('opponentMove');
+      socket.off('opponentDisconnected');
+    };
+  }, [online]);
+
   const handleSquareClick = (idx) => {
     if (gameState.winner) return;
+    if (!isMyTurn) return;
 
     const piece = gameState.board[idx];
     const isCurrentPlayerPiece = piece && piece.toLowerCase() === gameState.turn;
 
-    // If clicking a valid destination
     if (selected !== null) {
       const move = validMoves.find(m => m.to === idx);
       if (move) {
@@ -120,11 +215,11 @@ export default function CheckersBoard() {
         setGameState(newState);
         setLastMove({ from: move.from, to: move.to });
         setSelected(null);
+        if (online) socket.emit('move', move);
         return;
       }
     }
 
-    // Select a new piece
     if (isCurrentPlayerPiece) {
       setSelected(idx === selected ? null : idx);
     } else {
@@ -133,10 +228,11 @@ export default function CheckersBoard() {
   };
 
   const resetGame = () => {
-    setGameState(rules.getInitialState());
+    setGameState(rules.getInitialBoard());
     setSelected(null);
     setValidMoves([]);
     setLastMove(null);
+    setStatusMsg('');
   };
 
   const validDestinations = new Set(validMoves.map(m => m.to));
@@ -153,11 +249,9 @@ export default function CheckersBoard() {
         height: '76%',
         borderRadius: '50%',
         background: isRed
-          ? 'radial-gradient(circle at 35% 35%, #ff6b6b, #c0392b)'
-          : 'radial-gradient(circle at 35% 35%, #4a4a4a, #1a1a1a)',
-        boxShadow: isRed
-          ? '0 4px 8px rgba(0,0,0,0.5), inset 0 -3px 6px rgba(0,0,0,0.3), inset 0 3px 6px rgba(255,150,150,0.3)'
-          : '0 4px 8px rgba(0,0,0,0.6), inset 0 -3px 6px rgba(0,0,0,0.4), inset 0 3px 6px rgba(255,255,255,0.1)',
+          ? '#c0392b'
+          : '#292929',
+        border: '3px solid #222',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -167,7 +261,8 @@ export default function CheckersBoard() {
       }}>
         {isKing && (
           <span style={{
-            fontSize: '1.1em',
+            fontSize: '1rem',
+            lineHeight: 1,
             filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))',
             userSelect: 'none',
           }}>♛</span>
@@ -197,6 +292,31 @@ export default function CheckersBoard() {
       gap: '16px',
     }}>
 
+      {/* Opponent disconnected banner */}
+      {statusMsg && (
+        <div style={{
+          background: 'rgba(255,80,80,0.15)',
+          border: '1px solid rgba(255,80,80,0.4)',
+          borderRadius: '10px',
+          padding: '8px 20px',
+          color: 'salmon',
+          fontSize: '0.9em',
+        }}>
+          {statusMsg}
+        </div>
+      )}
+
+      {/* Online indicator */}
+      {online && (
+        <div style={{
+          fontSize: '0.8em',
+          opacity: 0.5,
+          letterSpacing: '0.05em',
+        }}>
+          You are playing as {myColor === 'r' ? '🔴 Red' : '⚫ Black'}
+        </div>
+      )}
+
       {/* Status bar */}
       <div style={{
         display: 'flex',
@@ -225,36 +345,43 @@ export default function CheckersBoard() {
               border: '1px solid rgba(255,255,255,0.2)',
             }} />
             <span style={{ fontSize: '0.95em', opacity: 0.9 }}>
-              {gameState.turn === 'r' ? "Red's turn" : "Black's turn"}
+              {online
+                ? (isMyTurn ? 'Your turn' : "Opponent's turn")
+                : (gameState.turn === 'r' ? "Red's turn" : "Black's turn")
+              }
             </span>
           </>
         )}
-        <button
-          onClick={resetGame}
-          style={{
-            marginLeft: '12px',
-            padding: '5px 14px',
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '8px',
-            color: '#e8e0d0',
-            cursor: 'pointer',
-            fontSize: '0.85em',
-            transition: 'background 0.2s',
-          }}
-          onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.2)'}
-          onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.1)'}
-        >
-          New Game
-        </button>
+        {!online && (
+          <button
+            onClick={resetGame}
+            style={{
+              marginLeft: '12px',
+              padding: '5px 14px',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '8px',
+              color: '#e8e0d0',
+              cursor: 'pointer',
+              fontSize: '0.85em',
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.2)'}
+            onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.1)'}
+          >
+            New Game
+          </button>
+        )}
       </div>
 
       {/* Board */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(8, 1fr)',
+        gridTemplateRows: 'repeat(8, 1fr)',
         width: 'min(560px, 90vw)',
         height: 'min(560px, 90vw)',
+        flexShrink: 0,
         borderRadius: '8px',
         overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 0 3px rgba(255,255,255,0.08)',
@@ -267,7 +394,7 @@ export default function CheckersBoard() {
           const piece = gameState.board[idx];
           const isSelected = selected === idx;
           const isValidDest = validDestinations.has(idx);
-          const isSelectable = !gameState.winner && selectablePieces.has(idx) && !isSelected;
+          const isSelectable = !gameState.winner && isMyTurn && selectablePieces.has(idx) && !isSelected;
           const wasLastMove = lastMove && (lastMove.from === idx || lastMove.to === idx);
 
           let bgColor;
@@ -295,7 +422,6 @@ export default function CheckersBoard() {
                 transition: 'background 0.2s',
               }}
             >
-              {/* Valid move indicator dot */}
               {isValidDest && !piece && (
                 <div style={{
                   width: '28%',
@@ -306,7 +432,6 @@ export default function CheckersBoard() {
                   pointerEvents: 'none',
                 }} />
               )}
-              {/* Valid capture ring */}
               {isValidDest && piece && (
                 <div style={{
                   position: 'absolute',
@@ -317,7 +442,6 @@ export default function CheckersBoard() {
                   zIndex: 2,
                 }} />
               )}
-              {/* Selectable highlight */}
               {isSelectable && piece && (
                 <div style={{
                   position: 'absolute',
@@ -334,6 +458,7 @@ export default function CheckersBoard() {
                 justifyContent: 'center',
                 transform: isSelected ? 'scale(1.08)' : 'scale(1)',
                 transition: 'transform 0.15s ease',
+                overflow: 'hidden',
                 zIndex: 1,
               }}>
                 {renderPiece(piece)}
