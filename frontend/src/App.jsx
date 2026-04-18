@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import MainMenu from './components/MainMenu';
 import GamePage from './components/GamePage';
+import GuidePage from "./components/GuidePage";
 
 function App() {
   const [status, setStatus] = useState("Connecting to backend...");
@@ -26,8 +27,9 @@ function App() {
 
       <Routes>
         <Route path="/" element={<MainMenu />} />
-        
+        <Route path="/guide" element={<GuidePage />} />
         <Route path="/game/:gameType" element={<GamePage />} />
+        
       </Routes>
     </Router>
   );

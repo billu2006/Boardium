@@ -86,12 +86,22 @@ export default function MainMenu() {
         <div className="sidebarTop">
           <h1 className="logo">Boardium</h1>
           <nav className="navLinks">
-            <button className="navButton">Guide</button>
-            <button className="navButton">Leaderboard</button>
+
+            <button 
+              className="navButton"
+              onClick={() => navigate("/guide")}
+            >
+              Guide
+            </button>
           </nav>
         </div>
-        <button className="navButton loginButton">Login</button>
+
+        <button className="navButton loginButton">Play</button>
       </aside>
+
+     
+
+           
 
       <main className="mainContent">
         {!showLobby ? (
@@ -107,6 +117,7 @@ export default function MainMenu() {
               </div>
             ))}
           </div>
+
         ) : (
           <div style={{
             display: 'flex',
@@ -194,6 +205,7 @@ export default function MainMenu() {
             </button>
           </div>
         )}
+
       </main>
     </div>
   );

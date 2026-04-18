@@ -1,4 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
+import LudoBoard from "./boards/LudoBoard";
+import Connect4Board from "./boards/Connect4Board";
+import ChessBoard from "./boards/ChessBoard";
 import CheckersBoard from './CheckersBoard';
 
 export default function GamePage() {
@@ -6,10 +9,11 @@ export default function GamePage() {
   const navigate = useNavigate();
 
   const renderGameBoard = () => {
-    if (gameType === 'chess') return <div className="placeholder-board">Chess Board Component</div>;
+    if (gameType === 'chess') return <ChessBoard />;
     if (gameType === 'checkers') return <CheckersBoard />;
-    if (gameType === 'ludo') return <div className="placeholder-board">Ludo Board Component</div>;
-    if (gameType === 'connect4') return <div className="placeholder-board">Connect 4 Board Component</div>;
+    if (gameType === 'ludo') return <LudoBoard />;
+    if (gameType === 'connect4') return <Connect4Board />;
+    
     return <h2>Game not found!</h2>;
   };
 
@@ -19,6 +23,7 @@ export default function GamePage() {
         <button onClick={() => navigate("/")}>Quit to Menu</button>
         <h1>{gameType.toUpperCase()}</h1>
       </nav>
+
       <main className="board-area">
         {renderGameBoard()}
       </main>
