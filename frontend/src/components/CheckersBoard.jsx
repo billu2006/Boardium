@@ -24,20 +24,27 @@ class CheckersRules {
     }
   }
 
-  return {board, turn: 'r', winner: null};
+  return {board, turn: 'r', winner: null, mustJumpFrom: null};
 }
 
   getValidMoves(state) {
-    const { board, turn } = state;
+    const { board, turn, mustJumpFrom } = state;
+
+    if (mustJumpFrom !== null) {
+      const piece = board[mustJumpFrom];
+      return this._getMovesForPiece(board, mustJumpFrom, piece)
+        .filter(m => m.captures.length > 0);
+    }
+
     const allMoves = [];
-    for (let i = 0; i < 64; i++) 
+    for (let i = 0; i < 64; i++)
       {
       const piece = board[i];
       if (!piece)
         {
           continue;
         }
-      if (piece.toLowerCase() !== turn) 
+      if (piece.toLowerCase() !== turn)
         {
           continue;
         }
@@ -56,32 +63,33 @@ class CheckersRules {
     const piece = board[move.from];
     board[move.to] = piece;
     board[move.from] = null;
-    if (move.captures) 
+    if (move.captures)
     {
-      for (let i = 0; i < move.captures.length; i++) 
+      for (let i = 0; i < move.captures.length; i++)
       {
         board[move.captures[i]] = null;
       }
     }
+
   const row = Math.floor(move.to / 8);
-  if (piece === 'r' && row === 0)
-    {
-      board[move.to] = 'R';
-    } 
-  if (piece === 'b' && row === 7)
-  {
-    board[move.to] = 'B';
-  } 
+  let promoted = false;
+  if (piece === 'r' && row === 0) { board[move.to] = 'R'; promoted = true; }
+  if (piece === 'b' && row === 7) { board[move.to] = 'B'; promoted = true; }
 
-  const nextTurn = state.turn === 'r' ? 'b' : 'r';
+  // Check if piece can continue capturing (chain jump).
+  // Promotion ends the chain (standard American checkers rule).
+  let mustJumpFrom = null;
+  if (move.captures && move.captures.length > 0 && !promoted) {
+    const continueMoves = this._getMovesForPiece(board, move.to, board[move.to])
+      .filter(m => m.captures.length > 0);
+    if (continueMoves.length > 0) mustJumpFrom = move.to;
+  }
 
-  const newState = {
-    board,
-    turn: nextTurn,
-    winner: null
-  };
+  const nextTurn = mustJumpFrom !== null ? state.turn : (state.turn === 'r' ? 'b' : 'r');
 
-  newState.winner = this._checkWinner(newState);
+  const newState = { board, turn: nextTurn, winner: null, mustJumpFrom };
+
+  if (mustJumpFrom === null) newState.winner = this._checkWinner(newState);
 
   return newState;
 }
@@ -178,6 +186,13 @@ export default function CheckersBoard() {
       setValidMoves([]);
     }
   }, [selected, gameState]);
+
+  // Auto-select the piece that must continue a chain jump
+  useEffect(() => {
+    if (gameState.mustJumpFrom !== null) {
+      setSelected(gameState.mustJumpFrom);
+    }
+  }, [gameState.mustJumpFrom]);
 
   // Listen for opponent's moves over the socket
   useEffect(() => {
