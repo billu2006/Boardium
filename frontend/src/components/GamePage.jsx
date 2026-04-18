@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import LudoBoard from "./boards/LudoBoard";
-import CheckersBoard from "./boards/CheckersBoard";
 import Connect4Board from "./boards/Connect4Board";
 import ChessBoard from "./boards/ChessBoard";
+import CheckersBoard from './CheckersBoard';
 
 export default function GamePage() {
   const { gameType } = useParams(); 
