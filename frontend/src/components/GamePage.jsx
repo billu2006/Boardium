@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import "./GamePage.css";
 import LudoBoard from "./boards/LudoBoard";
 import Connect4Board from "./boards/Connect4Board";
 import ChessBoard from "./boards/ChessBoard";
@@ -19,10 +20,7 @@ export default function GamePage() {
 
   return (
     <div className="game-layout">
-      <nav className="game-nav">
-        <button onClick={() => navigate("/")}>Quit to Menu</button>
-        <h1>{gameType.toUpperCase()}</h1>
-      </nav>
+      <button className="back-btn" onClick={() => navigate("/")}>← Back</button>
 
       <main className="board-area">
         {renderGameBoard()}

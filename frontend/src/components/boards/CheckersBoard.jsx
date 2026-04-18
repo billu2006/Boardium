@@ -45,13 +45,6 @@ export default function CheckersBoard() {
     }
   };
 
-  const resetGame = () => {
-    setGameState(rules.getInitialState());
-    setSelected(null);
-    setValidMoves([]);
-    setLastMove(null);
-  };
-
   const validDestinations = new Set(validMoves.map((m) => m.to));
   const allCurrentMoves = rules.getValidMoves(gameState);
   const selectablePieces = new Set(allCurrentMoves.map((m) => m.from));
@@ -78,6 +71,7 @@ export default function CheckersBoard() {
 
   return (
     <div className="checkers-container">
+      <h1 className="game-title">CHECKERS</h1>
       <div className="status-bar">
         {gameState.winner ? (
           <span className="winner-text">
@@ -92,9 +86,6 @@ export default function CheckersBoard() {
           </span>
         )}
 
-        <button className="new-game-button" onClick={resetGame}>
-          New Game
-        </button>
       </div>
 
       <div className="board-grid">
