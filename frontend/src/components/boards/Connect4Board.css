@@ -5,9 +5,16 @@
   justify-content: center;
   min-height: 100%;
   padding: 20px;
-  font-family: "Georgia", serif;
   color: #e8e0d0;
   gap: 16px;
+}
+
+.game-title {
+  margin: 0;
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #e8e0d0;
+  letter-spacing: 0.05em;
 }
 
 /* --- Status bar (matches checkers layout) --- */

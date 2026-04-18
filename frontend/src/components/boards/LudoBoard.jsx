@@ -15,6 +15,7 @@ const LudoBoard = () => {
 
   return (
     <div className="ludo-page">
+      <h1 className="game-title">LUDO</h1>
       <div className="ludo-status-bar">
         {gameState.winner !== undefined && gameState.winner !== null ? (
           <span className="ludo-winner-text">
@@ -56,6 +57,7 @@ const LudoBoard = () => {
         </button>
       </div>
 
+      <div className="board-wrap">
       <div className="board">
         {Array.from({ length: 15 }).map((_, r) =>
           Array.from({ length: 15 }).map((_, c) => {
@@ -176,13 +178,14 @@ const LudoBoard = () => {
                   background: colors[pi],
                   cursor: canMoveToken(pi, ti) ? "pointer" : "default",
                   boxShadow: canMoveToken(pi, ti)
-                    ? "0 0 0 2px white"
+                    ? "0 0 0 2px #242424"
                     : "none",
                 }}
               />
             );
           })
         )}
+      </div>
       </div>
 
     </div>

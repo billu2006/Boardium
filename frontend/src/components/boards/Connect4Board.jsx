@@ -39,10 +39,9 @@ export default function Connect4Board() {
     setGameState(rules.applyMove(gameState, { col }));
   };
 
-  const resetGame = () => setGameState(rules.getInitialState());
-
   return (
     <div className="c4-container">
+      <h1 className="game-title">CONNECT 4</h1>
       <div className="c4-status-bar">
         {gameState.winner ? (
           <span className="c4-winner-text">
@@ -61,7 +60,6 @@ export default function Connect4Board() {
             {gameState.turn === "r" ? "Red's turn" : "Yellow's turn"}
           </span>
         )}
-        <button className="c4-new-game-btn" onClick={resetGame}>New Game</button>
       </div>
 
       <div className="c4-board-outer">
