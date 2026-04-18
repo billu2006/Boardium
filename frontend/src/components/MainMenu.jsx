@@ -10,6 +10,7 @@ import connect4Img from '../assets/Connect4.jpg';
 export default function MainMenu() {
   const navigate = useNavigate();
   const [showLobby, setShowLobby] = useState(false);
+  const [lobbyMode, setLobbyMode] = useState(null); // null | 'local' | 'online'
   const [selectedGame, setSelectedGame] = useState(null);
   const [joinCode, setJoinCode] = useState('');
   const [lobbyError, setLobbyError] = useState('');
@@ -25,9 +26,15 @@ export default function MainMenu() {
   const handleSelectGame = (title) => {
     setSelectedGame(title);
     setShowLobby(true);
+    setLobbyMode(null);
     setLobbyError('');
     setPendingCode(null);
     setJoinCode('');
+  };
+
+  const handlePlayLocal = () => {
+    const gamePath = selectedGame.toLowerCase().replace(/\s+/g, '');
+    navigate(`/game/${gamePath}`, { state: { online: false } });
   };
 
   const handleCreate = () => {
@@ -66,6 +73,7 @@ export default function MainMenu() {
 
   const handleBack = () => {
     setShowLobby(false);
+    setLobbyMode(null);
     setPendingCode(null);
     setLobbyError('');
     setJoinCode('');
@@ -112,60 +120,74 @@ export default function MainMenu() {
           }}>
             <h2 style={{ margin: 0 }}>Play {selectedGame}</h2>
 
-            {pendingCode ? (
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ opacity: 0.7 }}>Share this code with your opponent:</p>
-                <div style={{
-                  fontSize: '2.5em',
-                  fontWeight: 'bold',
-                  letterSpacing: '0.3em',
-                  color: '#646cff',
-                  margin: '12px 0',
-                }}>
-                  {pendingCode}
-                </div>
-                <p style={{ opacity: 0.5 }}>Waiting for opponent to join...</p>
-              </div>
-            ) : (
+            {lobbyMode === null && (
               <>
-                <button className="navButton" onClick={handleCreate}>
-                  Create Game
+                <button className="navButton" onClick={handlePlayLocal}>
+                  Play Locally
                 </button>
-
                 <div style={{ opacity: 0.4 }}>— or —</div>
-
-                <input
-                  placeholder="Enter room code"
-                  value={joinCode}
-                  onChange={e => setJoinCode(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleJoin()}
-                  style={{
-                    padding: '8px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #444',
-                    background: '#1a1a1a',
-                    color: 'white',
-                    fontSize: '1em',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                    textAlign: 'center',
-                    width: '160px',
-                  }}
-                />
-
-                <button className="navButton" onClick={handleJoin}>
-                  Join Game
+                <button className="navButton" onClick={() => setLobbyMode('online')}>
+                  Play Online
                 </button>
-
-                {lobbyError && (
-                  <p style={{ color: 'salmon', margin: 0 }}>{lobbyError}</p>
-                )}
               </>
+            )}
+
+            {lobbyMode === 'online' && (
+              pendingCode ? (
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ opacity: 0.7 }}>Share this code with your opponent:</p>
+                  <div style={{
+                    fontSize: '2.5em',
+                    fontWeight: 'bold',
+                    letterSpacing: '0.3em',
+                    color: '#646cff',
+                    margin: '12px 0',
+                  }}>
+                    {pendingCode}
+                  </div>
+                  <p style={{ opacity: 0.5 }}>Waiting for opponent to join...</p>
+                </div>
+              ) : (
+                <>
+                  <button className="navButton" onClick={handleCreate}>
+                    Create Game
+                  </button>
+
+                  <div style={{ opacity: 0.4 }}>— or —</div>
+
+                  <input
+                    placeholder="Enter room code"
+                    value={joinCode}
+                    onChange={e => setJoinCode(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleJoin()}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid #444',
+                      background: '#1a1a1a',
+                      color: 'white',
+                      fontSize: '1em',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      textAlign: 'center',
+                      width: '160px',
+                    }}
+                  />
+
+                  <button className="navButton" onClick={handleJoin}>
+                    Join Game
+                  </button>
+
+                  {lobbyError && (
+                    <p style={{ color: 'salmon', margin: 0 }}>{lobbyError}</p>
+                  )}
+                </>
+              )
             )}
 
             <button
               className="navButton"
-              onClick={handleBack}
+              onClick={lobbyMode === 'online' && !pendingCode ? () => setLobbyMode(null) : handleBack}
               style={{ marginTop: '8px', opacity: 0.5 }}
             >
               ← Back
