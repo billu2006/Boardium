@@ -5,10 +5,19 @@
   justify-content: center;
   min-height: 100%;
   padding: 20px;
-  font-family: "Georgia", serif;
   color: #e8e0d0;
   gap: 16px;
 }
+
+.game-title {
+  margin: 0;
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #e8e0d0;
+  letter-spacing: 0.05em;
+}
+
+/* --- Status bar (matches checkers style) --- */
 
 .ludo-status-bar {
   display: flex;
@@ -45,6 +54,7 @@
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
 }
 
 .turn-name {
@@ -59,6 +69,14 @@
   color: #f0c040;
 }
 
+/* --- Board (matches checkers .board-grid treatment) --- */
+
+.board-wrap {
+  overflow: auto;
+  max-width: 90vw;
+  border-radius: 8px;
+}
+
 .board {
   position: relative;
   width: 600px;
@@ -69,14 +87,15 @@
     0 20px 60px rgba(0, 0, 0, 0.7),
     0 0 0 3px rgba(255, 255, 255, 0.08);
   border: 3px solid #5c3d1e;
-  background: white;
+  box-sizing: border-box;
+  background: #f8f8f6;
 }
 
 .board-cell {
   position: absolute;
   width: 40px;
   height: 40px;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
@@ -107,61 +126,31 @@
   inset: 0;
 }
 
-.triangle-top {
-  background: #3b82f6;
-  clip-path: polygon(0% 0%, 100% 0%, 50% 50%);
-}
-
-.triangle-right {
-  background: #22c55e;
-  clip-path: polygon(100% 0%, 100% 100%, 50% 50%);
-}
-
-.triangle-bottom {
-  background: #eab308;
-  clip-path: polygon(0% 100%, 100% 100%, 50% 50%);
-}
-
-.triangle-left {
-  background: #ef4444;
-  clip-path: polygon(0% 0%, 0% 100%, 50% 50%);
-}
+.triangle-top    { background: #3b82f6; clip-path: polygon(0% 0%, 100% 0%, 50% 50%); }
+.triangle-right  { background: #22c55e; clip-path: polygon(100% 0%, 100% 100%, 50% 50%); }
+.triangle-bottom { background: #eab308; clip-path: polygon(0% 100%, 100% 100%, 50% 50%); }
+.triangle-left   { background: #ef4444; clip-path: polygon(0% 0%, 0% 100%, 50% 50%); }
 
 .spawn-area {
   position: absolute;
   width: 240px;
   height: 240px;
-  border: 2px solid black;
+  border: 2px solid rgba(0, 0, 0, 0.18);
   box-sizing: border-box;
   pointer-events: none;
 }
 
-.top-left {
-  left: 0;
-  top: 0;
-}
-
-.top-right {
-  left: 360px;
-  top: 0;
-}
-
-.bottom-left {
-  left: 0;
-  top: 360px;
-}
-
-.bottom-right {
-  left: 360px;
-  top: 360px;
-}
+.top-left    { left: 0;   top: 0;   }
+.top-right   { left: 360px; top: 0; }
+.bottom-left { left: 0;   top: 360px; }
+.bottom-right{ left: 360px; top: 360px; }
 
 .spawn-box {
   position: absolute;
   width: 40px;
   height: 40px;
-  background: white;
-  border: 2px solid #94a3b8;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid rgba(0, 0, 0, 0.15);
   border-radius: 4px;
   box-sizing: border-box;
 }
@@ -171,7 +160,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid black;
+  border: 2px solid rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.45),
@@ -181,8 +170,10 @@
 }
 
 .token:hover {
-  transform: scale(1.08);
+  transform: scale(1.12);
 }
+
+/* --- Roll button --- */
 
 .ludo-roll-btn {
   margin-left: 12px;
