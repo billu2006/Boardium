@@ -8,7 +8,7 @@ import {
   getPieceColor,
   getPieceMoves,
   isInCheck
-} from './game';
+} from "../games/ChessGame";
 
 const ChessGame = () => {
   const [board, setBoard] = useState(initialBoard);
