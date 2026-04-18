@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
+import MainMenu from './components/MainMenu';
+import GamePage from './components/GamePage';
+import GuidePage from "./components/GuidePage";
 
 function App() {
   const [status, setStatus] = useState("Connecting to backend...");
@@ -16,10 +20,18 @@ function App() {
   }, []);
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Boardium</h1>
-      <p>{status}</p>
-    </div>
+    <Router>
+      <div style={{ position: 'fixed', bottom: 10, right: 10, fontSize: '12px', color: '#888' , }}>
+        {status}
+      </div>
+
+      <Routes>
+        <Route path="/" element={<MainMenu />} />
+        <Route path="/guide" element={<GuidePage />} />
+        <Route path="/game/:gameType" element={<GamePage />} />
+        
+      </Routes>
+    </Router>
   );
 }
 
