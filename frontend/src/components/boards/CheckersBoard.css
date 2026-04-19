@@ -146,19 +146,15 @@
 }
 
 .piece-red {
-  background: radial-gradient(circle at 35% 35%, #ff6b6b, #c0392b);
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.5),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.3),
-    inset 0 3px 6px rgba(255, 150, 150, 0.3);
+  background: #c0392b;
+  border: 3px solid #7b261c;
+  
 }
 
 .piece-black {
-  background: radial-gradient(circle at 35% 35%, #4a4a4a, #1a1a1a);
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.6),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.4),
-    inset 0 3px 6px rgba(255, 255, 255, 0.1);
+  background: #292929; 
+  border: 3px solid #222222;
+  
 }
 
 .king-symbol {
@@ -217,4 +213,19 @@
   gap: 32px;
   font-size: 0.85em;
   opacity: 0.7;
+}
+
+.status-msg-banner {
+  background: rgba(255, 80, 80, 0.15);
+  border: 1px solid rgba(255, 80, 80, 0.4);
+  border-radius: 10px;
+  padding: 8px 20px;
+  color: salmon;
+  font-size: 0.9em;
+}
+
+.online-indicator {
+  font-size: 0.8em;
+  opacity: 0.5;
+  letter-spacing: 0.05em;
 }

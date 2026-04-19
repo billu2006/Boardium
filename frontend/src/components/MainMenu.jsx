@@ -1,20 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./MainMenu.css";
 import socket from '../socket';
-import chessImg from '../assets/Chess.jpg';
-import ludoImg from '../assets/Ludo.jpg';
-import checkersImg from '../assets/Checkers.jpg';
-import connect4Img from '../assets/Connect4.jpg';
+import "./MainMenu.css";
+import chessImg from '../assets/ChessIcon.png';
+import ludoImg from '../assets/LudoIcon.png';
+import checkersImg from '../assets/CheckersIcon.png';
+import connect4Img from '../assets/Connect4Icon.png';
 
 export default function MainMenu() {
   const navigate = useNavigate();
   const [showLobby, setShowLobby] = useState(false);
-  const [lobbyMode, setLobbyMode] = useState(null); // null | 'local' | 'online'
+  const [lobbyMode, setLobbyMode] = useState(null);
   const [selectedGame, setSelectedGame] = useState(null);
   const [joinCode, setJoinCode] = useState('');
   const [lobbyError, setLobbyError] = useState('');
   const [pendingCode, setPendingCode] = useState(null);
+  const [playerCount, setPlayerCount] = useState(1);
+  const [joiningPending, setJoiningPending] = useState(false);
 
   const gameOptions = [
     { id: 1, title: 'Chess', img: chessImg },
@@ -30,6 +32,8 @@ export default function MainMenu() {
     setLobbyError('');
     setPendingCode(null);
     setJoinCode('');
+    setPlayerCount(1);
+    setJoiningPending(false);
   };
 
   const handlePlayLocal = () => {
@@ -37,19 +41,28 @@ export default function MainMenu() {
     navigate(`/game/${gamePath}`, { state: { online: false } });
   };
 
+  const isLudo = selectedGame === 'Ludo';
+
   const handleCreate = () => {
     socket.connect();
-    socket.emit('createGame');
+    socket.emit('createGame', isLudo ? { maxPlayers: 4 } : {});
 
     socket.once('gameCreated', ({ code }) => {
       setPendingCode(code);
     });
 
-    socket.once('startGame', ({ code }) => {
+    socket.on('playerJoined', ({ count }) => {
+      setPlayerCount(count);
+    });
+
+    socket.once('startGame', ({ code, playerIndex }) => {
+      socket.off('playerJoined');
       const gamePath = selectedGame.toLowerCase().replace(/\s+/g, '');
-      navigate(`/game/${gamePath}`, {
-        state: { code, color: 'r', online: true }
-      });
+      if (isLudo) {
+        navigate(`/game/${gamePath}`, { state: { code, playerIndex, online: true } });
+      } else {
+        navigate(`/game/${gamePath}`, { state: { code, color: playerIndex === 0 ? 'r' : 'b', online: true } });
+      }
     });
   };
 
@@ -60,23 +73,36 @@ export default function MainMenu() {
 
     socket.once('joinError', (msg) => {
       setLobbyError(msg);
+      setJoiningPending(false);
       socket.disconnect();
     });
 
-    socket.once('startGame', ({ code }) => {
+    if (isLudo) setJoiningPending(true);
+
+    socket.on('playerJoined', ({ count }) => {
+      setPlayerCount(count);
+    });
+
+    socket.once('startGame', ({ code, playerIndex }) => {
+      socket.off('playerJoined');
       const gamePath = selectedGame.toLowerCase().replace(/\s+/g, '');
-      navigate(`/game/${gamePath}`, {
-        state: { code, color: 'b', online: true }
-      });
+      if (isLudo) {
+        navigate(`/game/${gamePath}`, { state: { code, playerIndex, online: true } });
+      } else {
+        navigate(`/game/${gamePath}`, { state: { code, color: playerIndex === 0 ? 'r' : 'b', online: true } });
+      }
     });
   };
 
   const handleBack = () => {
+    socket.off('playerJoined');
     setShowLobby(false);
     setLobbyMode(null);
     setPendingCode(null);
     setLobbyError('');
     setJoinCode('');
+    setPlayerCount(1);
+    setJoiningPending(false);
     socket.disconnect();
   };
 
@@ -86,22 +112,12 @@ export default function MainMenu() {
         <div className="sidebarTop">
           <h1 className="logo">Boardium</h1>
           <nav className="navLinks">
-
-            <button 
-              className="navButton"
-              onClick={() => navigate("/guide")}
-            >
+            <button className="navButton" onClick={() => navigate("/guide")}>
               Guide
             </button>
           </nav>
         </div>
-
-        <button className="navButton loginButton">Play</button>
       </aside>
-
-     
-
-           
 
       <main className="mainContent">
         {!showLobby ? (
@@ -119,25 +135,16 @@ export default function MainMenu() {
           </div>
 
         ) : (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px',
-            height: '100%',
-            color: '#e8e0d0',
-            fontFamily: 'system-ui, sans-serif',
-          }}>
-            <h2 style={{ margin: 0 }}>Play {selectedGame}</h2>
+          <div className="lobbyPanel">
+            <h2 className="lobbyTitle">Play {selectedGame}</h2>
 
             {lobbyMode === null && (
               <>
-                <button className="navButton" onClick={handlePlayLocal}>
+                <button className="navMult lobbyBtn" onClick={handlePlayLocal}>
                   Play Locally
                 </button>
-                <div style={{ opacity: 0.4 }}>— or —</div>
-                <button className="navButton" onClick={() => setLobbyMode('online')}>
+                <div className="lobbyDivider">— or —</div>
+                <button className="navMult lobbyBtn" onClick={() => setLobbyMode('online')}>
                   Play Online
                 </button>
               </>
@@ -145,67 +152,49 @@ export default function MainMenu() {
 
             {lobbyMode === 'online' && (
               pendingCode ? (
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ opacity: 0.7 }}>Share this code with your opponent:</p>
-                  <div style={{
-                    fontSize: '2.5em',
-                    fontWeight: 'bold',
-                    letterSpacing: '0.3em',
-                    color: '#646cff',
-                    margin: '12px 0',
-                  }}>
-                    {pendingCode}
-                  </div>
-                  <p style={{ opacity: 0.5 }}>Waiting for opponent to join...</p>
+                <div className="pendingCode">
+                  <p className="pendingLabel">Share this code with your opponent:</p>
+                  <div className="codeDisplay">{pendingCode}</div>
+                  <p className="waitingLabel">
+                    {isLudo
+                      ? `Waiting for players (${playerCount}/4)...`
+                      : 'Waiting for opponent to join...'}
+                  </p>
+                </div>
+              ) : joiningPending ? (
+                <div className="pendingCode">
+                  <p className="pendingLabel">Joined! Waiting for more players...</p>
+                  <p className="waitingLabel">Players ready: {playerCount} / 4</p>
                 </div>
               ) : (
                 <>
-                  <button className="navButton" onClick={handleCreate}>
+                  <button className="navMult lobbyBtn" onClick={handleCreate}>
                     Create Game
                   </button>
-
-                  <div style={{ opacity: 0.4 }}>— or —</div>
-
+                  <div className="lobbyDivider">— or —</div>
                   <input
+                    className="codeInput"
                     placeholder="Enter room code"
                     value={joinCode}
                     onChange={e => setJoinCode(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleJoin()}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: '8px',
-                      border: '1px solid #444',
-                      background: '#1a1a1a',
-                      color: 'white',
-                      fontSize: '1em',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
-                      textAlign: 'center',
-                      width: '160px',
-                    }}
                   />
-
-                  <button className="navButton" onClick={handleJoin}>
+                  <button className="navMult lobbyBtn" onClick={handleJoin}>
                     Join Game
                   </button>
-
-                  {lobbyError && (
-                    <p style={{ color: 'salmon', margin: 0 }}>{lobbyError}</p>
-                  )}
+                  {lobbyError && <p className="lobbyError">{lobbyError}</p>}
                 </>
               )
             )}
 
             <button
-              className="navButton"
-              onClick={lobbyMode === 'online' && !pendingCode ? () => setLobbyMode(null) : handleBack}
-              style={{ marginTop: '8px', opacity: 0.5 }}
+              className="navMult backBtn"
+              onClick={lobbyMode === 'online' && !pendingCode && !joiningPending ? () => setLobbyMode(null) : handleBack}
             >
               ← Back
             </button>
           </div>
         )}
-
       </main>
     </div>
   );
