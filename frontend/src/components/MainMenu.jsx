@@ -140,11 +140,11 @@ export default function MainMenu() {
 
             {lobbyMode === null && (
               <>
-                <button className="navButton lobbyBtn" onClick={handlePlayLocal}>
+                <button className="navMult lobbyBtn" onClick={handlePlayLocal}>
                   Play Locally
                 </button>
                 <div className="lobbyDivider">— or —</div>
-                <button className="navButton lobbyBtn" onClick={() => setLobbyMode('online')}>
+                <button className="navMult lobbyBtn" onClick={() => setLobbyMode('online')}>
                   Play Online
                 </button>
               </>
@@ -168,7 +168,7 @@ export default function MainMenu() {
                 </div>
               ) : (
                 <>
-                  <button className="navButton lobbyBtn" onClick={handleCreate}>
+                  <button className="navMult lobbyBtn" onClick={handleCreate}>
                     Create Game
                   </button>
                   <div className="lobbyDivider">— or —</div>
@@ -179,7 +179,7 @@ export default function MainMenu() {
                     onChange={e => setJoinCode(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleJoin()}
                   />
-                  <button className="navButton lobbyBtn" onClick={handleJoin}>
+                  <button className="navMult lobbyBtn" onClick={handleJoin}>
                     Join Game
                   </button>
                   {lobbyError && <p className="lobbyError">{lobbyError}</p>}
@@ -188,7 +188,7 @@ export default function MainMenu() {
             )}
 
             <button
-              className="navButton backBtn"
+              className="navMult backBtn"
               onClick={lobbyMode === 'online' && !pendingCode && !joiningPending ? () => setLobbyMode(null) : handleBack}
             >
               ← Back
