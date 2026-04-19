@@ -199,11 +199,11 @@ export default function ChessBoard() {
           <span className="chess-winner-text">
             {winner === "draw"
               ? "Stalemate — Draw!"
-              : `${winner === "white" ? "♔" : "♚"} ${winner === "white" ? "White" : "Black"} Wins!`}
+              : `${winner === "white" ? "⚪" : "⚫"} ${winner === "white" ? "White" : "Black"} Wins!`}
           </span>
         ) : (
           <span className="chess-turn-text">
-            <span className="chess-turn-icon">{turn === "white" ? "♔" : "♚"}</span>
+            <span className="chess-turn-icon">{turn === "white" ? "⚪" : "⚫"}</span>
             {turn === "white" ? "White" : "Black"}&apos;s turn
             {inCheck && <span className="chess-check-badge">Check!</span>}
           </span>

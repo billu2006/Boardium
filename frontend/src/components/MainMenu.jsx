@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import "./MainMenu.css"; 
-import chessImg from '../assets/Chess.jpg';
-import ludoImg from '../assets/Ludo.jpg';
-import checkersImg from '../assets/Checkers.jpg';
-import connect4Img from '../assets/Connect4.jpg';
+import chessImg from '../assets/ChessIcon.png';
+import ludoImg from '../assets/LudoIcon.png';
+import checkersImg from '../assets/CheckersIcon.png';
+import connect4Img from '../assets/Connect4Icon.png';
 
 export default function MainMenu() {
   const navigate = useNavigate();

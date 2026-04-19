@@ -5,7 +5,7 @@ export default function GuidePage() {
 
   return (
     <div className="guidePage">
-      <button onClick={() => navigate("/")}>← Back</button>
+      <button className="back-btn" onClick={() => navigate("/")}>← Back</button>
 
       <h1>Game Guide</h1>
 
