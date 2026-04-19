@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import "./Connect4Board.css";
 import ConnectFourRules from "../games/Connect4Game";
+import socket from "../../socket";
 
 const rules = new ConnectFourRules();
 
@@ -32,7 +34,15 @@ function getWinningCells(board) {
 }
 
 export default function Connect4Board() {
+  const location = useLocation();
+  const { color, online } = location.state || {};
+
   const [gameState, setGameState] = useState(() => rules.getInitialState());
+  const [statusMsg, setStatusMsg] = useState("");
+
+  // MainMenu sends 'b' for the joiner (generic color), but Connect4 uses 'r'/'y'
+  const myColor = color === "r" ? "r" : "y";
+  const isMyTurn = !online || gameState.turn === myColor;
 
   const isOver = rules.isGameOver(gameState);
   const winningCells =
@@ -40,14 +50,49 @@ export default function Connect4Board() {
       ? getWinningCells(gameState.board)
       : [];
 
+  useEffect(() => {
+    if (!online) return;
+
+    socket.on("opponentMove", (move) => {
+      setGameState((prev) => rules.applyMove(prev, move));
+    });
+
+    socket.on("opponentDisconnected", () => {
+      setStatusMsg("Opponent disconnected.");
+    });
+
+    return () => {
+      socket.off("opponentMove");
+      socket.off("opponentDisconnected");
+    };
+  }, [online]);
+
   const handleColumnClick = (col) => {
-    if (isOver || !rules.isValidMove(gameState, { col })) return;
-    setGameState(rules.applyMove(gameState, { col }));
+    if (isOver || !isMyTurn || !rules.isValidMove(gameState, { col })) return;
+    const move = { col };
+    setGameState(rules.applyMove(gameState, move));
+    if (online) socket.emit("move", move);
+  };
+
+  const resetGame = () => {
+    setGameState(rules.getInitialState());
+    setStatusMsg("");
   };
 
   return (
     <div className="c4-container">
       <h1 className="game-title">CONNECT 4</h1>
+
+      {statusMsg && (
+        <div className="c4-disconnect-banner">{statusMsg}</div>
+      )}
+
+      {online && (
+        <div className="c4-online-indicator">
+          You are playing as {playerEmojis[myColor]}{" "}
+          {myColor === "r" ? "Red" : "Yellow"}
+        </div>
+      )}
 
       <div className="c4-status-bar">
         {gameState.winner ? (
@@ -65,11 +110,20 @@ export default function Connect4Board() {
           </span>
         ) : (
           <span className="c4-turn-text">
-            <span className="c4-emoji">
-              {playerEmojis[gameState.turn]}
-            </span>
-            {gameState.turn === "r" ? "Red's turn" : "Yellow's turn"}
+            <span className="c4-emoji">{playerEmojis[gameState.turn]}</span>
+            {online
+              ? isMyTurn
+                ? "Your turn"
+                : "Opponent's turn"
+              : gameState.turn === "r"
+              ? "Red's turn"
+              : "Yellow's turn"}
           </span>
+        )}
+        {!online && (
+          <button className="c4-new-game-btn" onClick={resetGame}>
+            New Game
+          </button>
         )}
       </div>
 
@@ -82,13 +136,12 @@ export default function Connect4Board() {
                 const cell = gameState.board[idx];
                 const isWinning = winningCells.includes(idx);
                 const colFull = !rules.isValidMove(gameState, { col });
+                const disabled = isOver || colFull || !isMyTurn;
 
                 return (
                   <div
                     key={col}
-                    className={`c4-cell${
-                      isOver || colFull ? " disabled" : ""
-                    }`}
+                    className={`c4-cell${disabled ? " disabled" : ""}`}
                     onClick={() => handleColumnClick(col)}
                   >
                     {cell && (

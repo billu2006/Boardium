@@ -1,12 +1,21 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import "./CheckersBoard.css";
 import rules from "../games/CheckersGame";
+import socket from "../../socket";
 
 export default function CheckersBoard() {
+  const location = useLocation();
+  const { color, online } = location.state || {};
+
   const [gameState, setGameState] = useState(() => rules.getInitialState());
   const [selected, setSelected] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const [lastMove, setLastMove] = useState(null);
+  const [statusMsg, setStatusMsg] = useState("");
+
+  const myColor = color || "r";
+  const isMyTurn = !online || gameState.turn === myColor;
 
   useEffect(() => {
     if (selected !== null) {
@@ -19,8 +28,35 @@ export default function CheckersBoard() {
     }
   }, [selected, gameState]);
 
+  // Auto-select the piece that must continue a chain jump
+  useEffect(() => {
+    if (gameState.mustJumpFrom !== null) {
+      setSelected(gameState.mustJumpFrom);
+    }
+  }, [gameState.mustJumpFrom]);
+
+  // Listen for opponent's moves over the socket
+  useEffect(() => {
+    if (!online) return;
+
+    socket.on("opponentMove", (move) => {
+      setGameState((prev) => rules.applyMove(prev, move));
+      setLastMove({ from: move.from, to: move.to });
+    });
+
+    socket.on("opponentDisconnected", () => {
+      setStatusMsg("Opponent disconnected.");
+    });
+
+    return () => {
+      socket.off("opponentMove");
+      socket.off("opponentDisconnected");
+    };
+  }, [online]);
+
   const handleSquareClick = (idx) => {
     if (gameState.winner) return;
+    if (!isMyTurn) return;
 
     const piece = gameState.board[idx];
     const isCurrentPlayerPiece =
@@ -34,6 +70,7 @@ export default function CheckersBoard() {
         setGameState(newState);
         setLastMove({ from: move.from, to: move.to });
         setSelected(null);
+        if (online) socket.emit("move", move);
         return;
       }
     }
@@ -43,6 +80,14 @@ export default function CheckersBoard() {
     } else {
       setSelected(null);
     }
+  };
+
+  const resetGame = () => {
+    setGameState(rules.getInitialState());
+    setSelected(null);
+    setValidMoves([]);
+    setLastMove(null);
+    setStatusMsg("");
   };
 
   const validDestinations = new Set(validMoves.map((m) => m.to));
@@ -72,6 +117,19 @@ export default function CheckersBoard() {
   return (
     <div className="checkers-container">
       <h1 className="game-title">CHECKERS</h1>
+
+      {/* Opponent disconnected banner */}
+      {statusMsg && (
+        <div className="status-msg-banner">{statusMsg}</div>
+      )}
+
+      {/* Online indicator */}
+      {online && (
+        <div className="online-indicator">
+          You are playing as {myColor === "r" ? "🔴 Red" : "⚫ Black"}
+        </div>
+      )}
+
       <div className="status-bar">
         {gameState.winner ? (
           <span className="winner-text">
@@ -82,10 +140,23 @@ export default function CheckersBoard() {
             <span className="turn-emoji">
               {gameState.turn === "r" ? "🔴" : "⚫"}
             </span>
-            <span>{gameState.turn === "r" ? "Red's turn" : "Black's turn"}</span>
+            <span>
+              {online
+                ? isMyTurn
+                  ? "Your turn"
+                  : "Opponent's turn"
+                : gameState.turn === "r"
+                ? "Red's turn"
+                : "Black's turn"}
+            </span>
           </span>
         )}
 
+        {!online && (
+          <button className="new-game-button" onClick={resetGame}>
+            New Game
+          </button>
+        )}
       </div>
 
       <div className="board-grid">
@@ -99,7 +170,7 @@ export default function CheckersBoard() {
             const isSelected = selected === idx;
             const isValidDest = validDestinations.has(idx);
             const isSelectable =
-              !gameState.winner && selectablePieces.has(idx) && !isSelected;
+              !gameState.winner && isMyTurn && selectablePieces.has(idx) && !isSelected;
             const wasLastMove =
               lastMove && (lastMove.from === idx || lastMove.to === idx);
 
