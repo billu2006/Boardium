@@ -1,0 +1,15 @@
+# Node / npm
+node_modules/
+npm-debug.log*
+.env
+
+# React / Vite
+dist/
+build/
+
+# SQLite
+*.db
+*.sqlite
+
+# OS
+.DS_Store

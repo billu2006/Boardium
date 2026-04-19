@@ -4,6 +4,11 @@ import ConnectFourRules from "../games/Connect4Game";
 
 const rules = new ConnectFourRules();
 
+const playerEmojis = {
+  r: "🔴",
+  y: "🟡",
+};
+
 function getWinningCells(board) {
   const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
   for (let row = 0; row < 6; row++) {
@@ -30,9 +35,10 @@ export default function Connect4Board() {
   const [gameState, setGameState] = useState(() => rules.getInitialState());
 
   const isOver = rules.isGameOver(gameState);
-  const winningCells = isOver && gameState.winner !== "draw"
-    ? getWinningCells(gameState.board)
-    : [];
+  const winningCells =
+    isOver && gameState.winner !== "draw"
+      ? getWinningCells(gameState.board)
+      : [];
 
   const handleColumnClick = (col) => {
     if (isOver || !rules.isValidMove(gameState, { col })) return;
@@ -42,21 +48,26 @@ export default function Connect4Board() {
   return (
     <div className="c4-container">
       <h1 className="game-title">CONNECT 4</h1>
+
       <div className="c4-status-bar">
         {gameState.winner ? (
           <span className="c4-winner-text">
-            {gameState.winner === "draw"
-              ? "It's a Draw!"
-              : (
-                <>
-                  <span className={`c4-dot ${gameState.winner}`} />
-                  {gameState.winner === "r" ? "Red Wins!" : "Yellow Wins!"}
-                </>
-              )}
+            {gameState.winner === "draw" ? (
+              "It's a Draw! 🤝"
+            ) : (
+              <>
+                <span className="c4-emoji">
+                  {playerEmojis[gameState.winner]}
+                </span>
+                {gameState.winner === "r" ? "Red Wins!" : "Yellow Wins!"}
+              </>
+            )}
           </span>
         ) : (
           <span className="c4-turn-text">
-            <span className={`c4-dot ${gameState.turn}`} />
+            <span className="c4-emoji">
+              {playerEmojis[gameState.turn]}
+            </span>
             {gameState.turn === "r" ? "Red's turn" : "Yellow's turn"}
           </span>
         )}
@@ -71,14 +82,21 @@ export default function Connect4Board() {
                 const cell = gameState.board[idx];
                 const isWinning = winningCells.includes(idx);
                 const colFull = !rules.isValidMove(gameState, { col });
+
                 return (
                   <div
                     key={col}
-                    className={`c4-cell${isOver || colFull ? " disabled" : ""}`}
+                    className={`c4-cell${
+                      isOver || colFull ? " disabled" : ""
+                    }`}
                     onClick={() => handleColumnClick(col)}
                   >
                     {cell && (
-                      <div className={`c4-disc ${cell}${isWinning ? " winning" : ""}`} />
+                      <div
+                        className={`c4-disc ${cell}${
+                          isWinning ? " winning" : ""
+                        }`}
+                      />
                     )}
                   </div>
                 );
