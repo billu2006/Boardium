@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import "./MainMenu.css"; 
-import chessImg from '../assets/Chess.jpg';
-import ludoImg from '../assets/Ludo.jpg';
-import checkersImg from '../assets/Checkers.jpg';
-import connect4Img from '../assets/Connect4.jpg';
+import chessImg from '../assets/ChessIcon.png';
+import ludoImg from '../assets/LudoIcon.png';
+import checkersImg from '../assets/CheckersIcon.png';
+import connect4Img from '../assets/Connect4Icon.png';
 
 export default function MainMenu() {
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ export default function MainMenu() {
   ];
 
   const handleSelectGame = (title) => {
-    // CamelCase variable for the URL path
     const gamePage = title.toLowerCase().replace(/\s+/g, '');
     navigate(`/game/${gamePage}`);
   };
@@ -27,12 +26,16 @@ export default function MainMenu() {
         <div className="sidebarTop">
           <h1 className="logo">Boardium</h1>
           <nav className="navLinks">
-            <button className="navButton">Guide</button>
-            <button className="navButton">Leaderboard</button>
+            <button 
+              className="navButton"
+              onClick={() => navigate("/guide")}
+            >
+              Guide
+            </button>
           </nav>
         </div>
 
-        <button className="navButton loginButton">Login</button>
+        <button className="navButton loginButton">Play</button>
       </aside>
 
       <main className="mainContent">
