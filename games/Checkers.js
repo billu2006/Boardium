@@ -1,10 +1,5 @@
 class CheckersRules {
- 
-  // ---------------------------------------------------------------
-  // Initial board state
-  // Black pieces occupy rows 0-2 (top), red pieces occupy rows 5-7 (bottom)
-  // Only dark squares (even columns on odd rows, odd columns on even rows) are used
-  // ---------------------------------------------------------------
+
   getInitialState() {
     const board = Array(64).fill(null);
  
@@ -26,10 +21,6 @@ class CheckersRules {
     };
   }
  
-  // ---------------------------------------------------------------
-  // Returns all valid moves for the current player.
-  // Jumps are mandatory — if any jump is available, only jumps are returned.
-  // ---------------------------------------------------------------
   getValidMoves(state) {
     const { board, turn } = state;
     const allMoves = [];
@@ -48,9 +39,6 @@ class CheckersRules {
     return jumps.length > 0 ? jumps : allMoves;
   }
  
-  // ---------------------------------------------------------------
-  // Validates a single move against the current state
-  // ---------------------------------------------------------------
   isValidMove(state, move) {
     const valid = this.getValidMoves(state);
     return valid.some(
@@ -58,9 +46,6 @@ class CheckersRules {
     );
   }
  
-  // ---------------------------------------------------------------
-  // Applies a move and returns the new state (immutable — no mutation)
-  // ---------------------------------------------------------------
   applyMove(state, move) {
     const board = [...state.board];
     const piece = board[move.from];
@@ -90,25 +75,20 @@ class CheckersRules {
     return newState;
   }
  
-  // ---------------------------------------------------------------
-  // Returns true if the game has ended
-  // ---------------------------------------------------------------
   isGameOver(state) {
     return state.winner !== null;
   }
  
-  // ---------------------------------------------------------------
   // PRIVATE HELPERS
-  // ---------------------------------------------------------------
  
-  // Returns all moves (simple + jumps) for one piece at index `from`
+  // Returns all moves (simple + jumps) for one piece at index "from"
   _getMovesForPiece(board, from, piece) {
     const moves   = [];
     const isKing  = piece === piece.toUpperCase() && piece !== piece.toLowerCase();
     const color   = piece.toLowerCase();
  
     // Direction vectors: [rowDelta, colDelta]
-    // Men can only move forward; kings can move in all 4 diagonal directions
+    // normal pieces can only move forward; kings can move in all 4 diagonal directions
     const forwardDir = color === 'r' ? -1 : 1;  // red moves up (decreasing row), black moves down
     const dirs = isKing
       ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
@@ -126,7 +106,7 @@ class CheckersRules {
         // Simple move
         moves.push({ from, to, captures: [] });
       } else if (board[to].toLowerCase() !== color) {
-        // Potential jump — check the landing square
+        // check the landing square for jumps
         const landRow = toRow + dr;
         const landCol = toCol + dc;
  
