@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import "./ChessBoard.css";
 import {
   initialBoard,
@@ -9,6 +10,7 @@ import {
   isInCheck,
   findKing,
 } from "../games/ChessGame";
+import socket from "../../socket";
 
 function toAlg(row, col) {
   return String.fromCharCode(97 + col) + (8 - row);
@@ -31,6 +33,12 @@ function buildNotation(piece, fromRow, fromCol, toRow, toCol, captured, nextInCh
 }
 
 export default function ChessBoard() {
+  const location = useLocation();
+  const { color, online } = location.state || {};
+
+  // Creator gets white ('r'), joiner gets black ('b')
+  const myColor = color === "r" ? "white" : "black";
+
   const [board, setBoard] = useState(() => initialBoard.map(r => [...r]));
   const [turn, setTurn] = useState("white");
   const [selected, setSelected] = useState(null);
@@ -47,16 +55,46 @@ export default function ChessBoard() {
   const [inCheck, setInCheck] = useState(false);
   const [promotionPending, setPromotionPending] = useState(null);
   const [lastMove, setLastMove] = useState(null);
+  const [statusMsg, setStatusMsg] = useState("");
+
+  const isMyTurn = !online || turn === myColor;
+
+  const resetGame = () => {
+    setBoard(initialBoard.map(r => [...r]));
+    setTurn("white");
+    setSelected(null);
+    setValidMoves([]);
+    setCapturedByWhite([]);
+    setCapturedByBlack([]);
+    setMoveHistory([]);
+    setCastlingRights({ whiteKingSide: true, whiteQueenSide: true, blackKingSide: true, blackQueenSide: true });
+    setEnPassantTarget(null);
+    setWinner(null);
+    setInCheck(false);
+    setPromotionPending(null);
+    setLastMove(null);
+    setStatusMsg("");
+  };
+
+  // Keep a ref so the socket handler always calls the latest executeMove
+  const executeMoveRef = useRef(null);
 
   const handleSquareClick = (row, col) => {
     if (winner || promotionPending) return;
+    if (!isMyTurn) return;
     const piece = board[row][col];
     const color = getPieceColor(piece);
 
     if (selected) {
       const [sr, sc] = selected;
       if (validMoves.some(([r, c]) => r === row && c === col)) {
+        const isPawn = board[sr][sc]?.toUpperCase() === "P";
+        const isPromoRow = (turn === "white" && row === 0) || (turn === "black" && row === 7);
+        const willPromote = isPawn && isPromoRow;
         executeMove(sr, sc, row, col);
+        if (online && !willPromote) {
+          socket.emit("move", { fromRow: sr, fromCol: sc, toRow: row, toCol: col });
+        }
         return;
       }
       if (piece && color === turn) {
@@ -75,7 +113,8 @@ export default function ChessBoard() {
     }
   };
 
-  const executeMove = (fromRow, fromCol, toRow, toCol) => {
+  // promotionType: pass uppercase piece type (e.g. "Q") to skip dialog (used for opponent's online move)
+  const executeMove = (fromRow, fromCol, toRow, toCol, promotionType = null) => {
     const nb = board.map(r => [...r]);
     const piece = nb[fromRow][fromCol];
     const type = piece.toUpperCase();
@@ -111,12 +150,17 @@ export default function ChessBoard() {
       if (fromRow === 0 && fromCol === 7) newCR.blackKingSide = false;
       if (fromRow === 0 && fromCol === 0) newCR.blackQueenSide = false;
     }
+    // Revoke castling rights if a rook is captured on its starting square
+    if (toRow === 7 && toCol === 7) newCR.whiteKingSide = false;
+    if (toRow === 7 && toCol === 0) newCR.whiteQueenSide = false;
+    if (toRow === 0 && toCol === 7) newCR.blackKingSide = false;
+    if (toRow === 0 && toCol === 0) newCR.blackQueenSide = false;
 
     // En passant setup
     if (type === "P" && Math.abs(toRow - fromRow) === 2)
       newEP = [(fromRow + toRow) / 2, toCol];
 
-    // Pawn promotion — pause and show dialog
+    // Pawn promotion
     if (type === "P" && (toRow === 0 || toRow === 7)) {
       if (captured) {
         if (color === "white") setCapturedByWhite(p => [...p, captured]);
@@ -126,12 +170,23 @@ export default function ChessBoard() {
       setLastMove({ from: [fromRow, fromCol], to: [toRow, toCol] });
       setSelected(null);
       setValidMoves([]);
-      setPromotionPending({ row: toRow, col: toCol, color, fromRow, fromCol, captured, newCR, newEP });
+
+      if (promotionType !== null) {
+        // Opponent's online promotion — apply directly without dialog
+        const promoted = color === "white" ? promotionType : promotionType.toLowerCase();
+        nb[toRow][toCol] = promoted;
+        finalize(nb, color === "white" ? "P" : "p", fromRow, fromCol, toRow, toCol, captured, newCR, newEP, color, promoted);
+      } else {
+        setPromotionPending({ row: toRow, col: toCol, color, fromRow, fromCol, captured, newCR, newEP });
+      }
       return;
     }
 
     finalize(nb, piece, fromRow, fromCol, toRow, toCol, captured, newCR, newEP, color, null);
   };
+
+  // Keep ref current so socket handler is never stale
+  executeMoveRef.current = executeMove;
 
   const finalize = (nb, piece, fromRow, fromCol, toRow, toCol, captured, newCR, newEP, color, promotedPiece) => {
     const nextTurn = color === "white" ? "black" : "white";
@@ -147,7 +202,6 @@ export default function ChessBoard() {
     const isStalemate = !nextCheck && !hasLegal;
     const notation = buildNotation(piece, fromRow, fromCol, toRow, toCol, captured, nextCheck, isMate, promotedPiece);
 
-    // Add captured piece (skip promotion — already added in executeMove)
     if (captured && !promotedPiece) {
       if (color === "white") setCapturedByWhite(p => [...p, captured]);
       else setCapturedByBlack(p => [...p, captured]);
@@ -174,7 +228,28 @@ export default function ChessBoard() {
     nb[row][col] = promoted;
     setPromotionPending(null);
     finalize(nb, color === "white" ? "P" : "p", fromRow, fromCol, row, col, captured, newCR, newEP, color, promoted);
+    if (online) {
+      socket.emit("move", { fromRow, fromCol, toRow: row, toCol: col, promotionType: pieceType });
+    }
   };
+
+  // Socket listeners for online mode
+  useEffect(() => {
+    if (!online) return;
+
+    socket.on("opponentMove", (move) => {
+      executeMoveRef.current(move.fromRow, move.fromCol, move.toRow, move.toCol, move.promotionType || null);
+    });
+
+    socket.on("opponentDisconnected", () => {
+      setStatusMsg("Opponent disconnected.");
+    });
+
+    return () => {
+      socket.off("opponentMove");
+      socket.off("opponentDisconnected");
+    };
+  }, [online]);
 
   // Pair moves into rows for display
   const movePairs = [];
@@ -193,6 +268,17 @@ export default function ChessBoard() {
   return (
     <div className="chess-container">
       <h1 className="game-title">CHESS</h1>
+
+      {statusMsg && (
+        <div className="chess-disconnect-banner">{statusMsg}</div>
+      )}
+
+      {online && (
+        <div className="chess-online-indicator">
+          You are playing as {myColor === "white" ? "⚪ White" : "⚫ Black"}
+        </div>
+      )}
+
       {/* Status bar */}
       <div className="chess-status-bar">
         {winner ? (
@@ -204,9 +290,14 @@ export default function ChessBoard() {
         ) : (
           <span className="chess-turn-text">
             <span className="chess-turn-icon">{turn === "white" ? "⚪" : "⚫"}</span>
-            {turn === "white" ? "White" : "Black"}&apos;s turn
+            {online
+              ? isMyTurn ? "Your turn" : "Opponent's turn"
+              : `${turn === "white" ? "White" : "Black"}'s turn`}
             {inCheck && <span className="chess-check-badge">Check!</span>}
           </span>
+        )}
+        {!online && (
+          <button className="chess-new-game-btn" onClick={resetGame}>New Game</button>
         )}
       </div>
 
@@ -251,7 +342,7 @@ export default function ChessBoard() {
                   (lastMove.to[0] === rIdx && lastMove.to[1] === cIdx)
                 );
                 const isCheckSq = checkedKey === `${rIdx},${cIdx}`;
-                const isClickable = !winner && !promotionPending &&
+                const isClickable = !winner && !promotionPending && isMyTurn &&
                   ((piece && getPieceColor(piece) === turn) || isValidDest);
 
                 let cls = `chess-sq ${isLight ? "light" : "dark"}`;

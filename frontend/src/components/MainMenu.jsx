@@ -15,6 +15,8 @@ export default function MainMenu() {
   const [joinCode, setJoinCode] = useState('');
   const [lobbyError, setLobbyError] = useState('');
   const [pendingCode, setPendingCode] = useState(null);
+  const [playerCount, setPlayerCount] = useState(1);
+  const [joiningPending, setJoiningPending] = useState(false);
 
   const gameOptions = [
     { id: 1, title: 'Chess', img: chessImg },
@@ -30,6 +32,8 @@ export default function MainMenu() {
     setLobbyError('');
     setPendingCode(null);
     setJoinCode('');
+    setPlayerCount(1);
+    setJoiningPending(false);
   };
 
   const handlePlayLocal = () => {
@@ -37,19 +41,28 @@ export default function MainMenu() {
     navigate(`/game/${gamePath}`, { state: { online: false } });
   };
 
+  const isLudo = selectedGame === 'Ludo';
+
   const handleCreate = () => {
     socket.connect();
-    socket.emit('createGame');
+    socket.emit('createGame', isLudo ? { maxPlayers: 4 } : {});
 
     socket.once('gameCreated', ({ code }) => {
       setPendingCode(code);
     });
 
-    socket.once('startGame', ({ code }) => {
+    socket.on('playerJoined', ({ count }) => {
+      setPlayerCount(count);
+    });
+
+    socket.once('startGame', ({ code, playerIndex }) => {
+      socket.off('playerJoined');
       const gamePath = selectedGame.toLowerCase().replace(/\s+/g, '');
-      navigate(`/game/${gamePath}`, {
-        state: { code, color: 'r', online: true }
-      });
+      if (isLudo) {
+        navigate(`/game/${gamePath}`, { state: { code, playerIndex, online: true } });
+      } else {
+        navigate(`/game/${gamePath}`, { state: { code, color: playerIndex === 0 ? 'r' : 'b', online: true } });
+      }
     });
   };
 
@@ -60,26 +73,38 @@ export default function MainMenu() {
 
     socket.once('joinError', (msg) => {
       setLobbyError(msg);
+      setJoiningPending(false);
       socket.disconnect();
     });
 
-    socket.once('startGame', ({ code }) => {
+    if (isLudo) setJoiningPending(true);
+
+    socket.on('playerJoined', ({ count }) => {
+      setPlayerCount(count);
+    });
+
+    socket.once('startGame', ({ code, playerIndex }) => {
+      socket.off('playerJoined');
       const gamePath = selectedGame.toLowerCase().replace(/\s+/g, '');
-      navigate(`/game/${gamePath}`, {
-        state: { code, color: 'b', online: true }
-      });
+      if (isLudo) {
+        navigate(`/game/${gamePath}`, { state: { code, playerIndex, online: true } });
+      } else {
+        navigate(`/game/${gamePath}`, { state: { code, color: playerIndex === 0 ? 'r' : 'b', online: true } });
+      }
     });
   };
 
   const handleBack = () => {
+    socket.off('playerJoined');
     setShowLobby(false);
     setLobbyMode(null);
     setPendingCode(null);
     setLobbyError('');
     setJoinCode('');
+    setPlayerCount(1);
+    setJoiningPending(false);
     socket.disconnect();
   };
-
 
   return (
     <div className="lobbyContainer">
@@ -92,7 +117,6 @@ export default function MainMenu() {
             </button>
           </nav>
         </div>
-        <button className="navButton loginButton">Play</button>
       </aside>
 
       <main className="mainContent">
@@ -131,7 +155,16 @@ export default function MainMenu() {
                 <div className="pendingCode">
                   <p className="pendingLabel">Share this code with your opponent:</p>
                   <div className="codeDisplay">{pendingCode}</div>
-                  <p className="waitingLabel">Waiting for opponent to join...</p>
+                  <p className="waitingLabel">
+                    {isLudo
+                      ? `Waiting for players (${playerCount}/4)...`
+                      : 'Waiting for opponent to join...'}
+                  </p>
+                </div>
+              ) : joiningPending ? (
+                <div className="pendingCode">
+                  <p className="pendingLabel">Joined! Waiting for more players...</p>
+                  <p className="waitingLabel">Players ready: {playerCount} / 4</p>
                 </div>
               ) : (
                 <>
@@ -156,7 +189,7 @@ export default function MainMenu() {
 
             <button
               className="navButton backBtn"
-              onClick={lobbyMode === 'online' && !pendingCode ? () => setLobbyMode(null) : handleBack}
+              onClick={lobbyMode === 'online' && !pendingCode && !joiningPending ? () => setLobbyMode(null) : handleBack}
             >
               ← Back
             </button>
