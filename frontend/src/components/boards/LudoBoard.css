@@ -1,4 +1,4 @@
-.ludo-page {
+.ludoPage {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,7 +9,7 @@
   gap: 16px;
 }
 
-.game-title {
+.gameTitle {
   margin: 0;
   font-size: 2.6rem;
   font-weight: 700;
@@ -17,9 +17,7 @@
   letter-spacing: 0.05em;
 }
 
-/* --- Status bar (matches checkers style) --- */
-
-.ludo-status-bar {
+.ludoStatusBar {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -30,7 +28,7 @@
   backdrop-filter: blur(10px);
 }
 
-.ludo-winner-text {
+.ludoWinnerText {
   font-size: 1.1em;
   font-weight: bold;
   color: #f0c040;
@@ -39,7 +37,7 @@
   gap: 8px;
 }
 
-.ludo-turn-text {
+.ludoTurnText {
   font-size: 0.95em;
   opacity: 0.9;
   display: flex;
@@ -48,7 +46,7 @@
   line-height: 1;
 }
 
-.turn-emoji {
+.turnEmoji {
   font-size: 1.4rem;
   display: inline-flex;
   align-items: center;
@@ -57,35 +55,31 @@
   flex-shrink: 0;
 }
 
-.turn-name {
+.turnName {
   font-size: 0.95em;
   text-transform: capitalize;
   opacity: 0.95;
 }
 
-.extra-turn {
+.extraTurn {
   font-size: 0.9em;
   font-weight: bold;
   color: #f0c040;
 }
 
-/* --- Board area: board + roll dice side by side --- */
-
-.ludo-board-area {
+.ludoBoardArea {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 20px;
 }
 
-.ludo-board-spacer {
+.ludoBoardSpacer {
   width: 110px;
   flex-shrink: 0;
 }
 
-/* --- Board (matches checkers .board-grid treatment) --- */
-
-.board-wrap {
+.boardWrap {
   overflow: auto;
   max-width: 90vw;
   border-radius: 8px;
@@ -105,7 +99,7 @@
   background: #f8f8f6;
 }
 
-.board-cell {
+.boardCell {
   position: absolute;
   width: 40px;
   height: 40px;
@@ -113,7 +107,7 @@
   box-sizing: border-box;
 }
 
-.start-star {
+.startStar {
   position: absolute;
   width: 40px;
   height: 40px;
@@ -126,7 +120,7 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
-.center-triangles {
+.centerTriangles {
   position: absolute;
   left: 240px;
   top: 240px;
@@ -140,12 +134,12 @@
   inset: 0;
 }
 
-.triangle-top    { background: #3b82f6; clip-path: polygon(0% 0%, 100% 0%, 50% 50%); }
-.triangle-right  { background: #22c55e; clip-path: polygon(100% 0%, 100% 100%, 50% 50%); }
-.triangle-bottom { background: #eab308; clip-path: polygon(0% 100%, 100% 100%, 50% 50%); }
-.triangle-left   { background: #ef4444; clip-path: polygon(0% 0%, 0% 100%, 50% 50%); }
+.triangleTop    { background: #3b82f6; clip-path: polygon(0% 0%, 100% 0%, 50% 50%); }
+.triangleRight  { background: #22c55e; clip-path: polygon(100% 0%, 100% 100%, 50% 50%); }
+.triangleBottom { background: #eab308; clip-path: polygon(0% 100%, 100% 100%, 50% 50%); }
+.triangleLeft   { background: #ef4444; clip-path: polygon(0% 0%, 0% 100%, 50% 50%); }
 
-.spawn-area {
+.spawnArea {
   position: absolute;
   width: 240px;
   height: 240px;
@@ -154,12 +148,12 @@
   pointer-events: none;
 }
 
-.top-left    { left: 0;   top: 0;   }
-.top-right   { left: 360px; top: 0; }
-.bottom-left { left: 0;   top: 360px; }
-.bottom-right{ left: 360px; top: 360px; }
+.topLeft     { left: 0;     top: 0;     }
+.topRight    { left: 360px; top: 0;     }
+.bottomLeft  { left: 0;     top: 360px; }
+.bottomRight { left: 360px; top: 360px; }
 
-.spawn-box {
+.spawnBox {
   position: absolute;
   width: 40px;
   height: 40px;
@@ -187,7 +181,7 @@
   transform: scale(1.12);
 }
 
-.ludo-disconnect-banner {
+.ludoDisconnectBanner {
   background: rgba(255, 80, 80, 0.15);
   border: 1px solid rgba(255, 80, 80, 0.4);
   border-radius: 10px;
@@ -196,14 +190,12 @@
   font-size: 0.9em;
 }
 
-.ludo-online-indicator {
+.ludoOnlineIndicator {
   font-size: 0.8em;
   opacity: 0.5;
 }
 
-/* --- Roll Dice button (big square, right of board) --- */
-
-.ludo-roll-btn {
+.ludoRollBtn {
   width: 110px;
   height: 110px;
   display: flex;
@@ -221,37 +213,35 @@
   flex-shrink: 0;
 }
 
-.ludo-roll-btn:hover:not(:disabled) {
+.ludoRollBtn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.15);
   transform: scale(1.04);
 }
 
-.ludo-roll-btn:disabled {
+.ludoRollBtn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   transform: none;
 }
 
-.ludo-dice-icon {
+.ludoDiceIcon {
   font-size: 2rem;
   line-height: 1;
 }
 
-.ludo-dice-label {
+.ludoDiceLabel {
   font-size: 0.75em;
   opacity: 0.75;
 }
 
-.ludo-dice-value {
+.ludoDiceValue {
   font-size: 1.5em;
   font-weight: bold;
   color: #f0c040;
   line-height: 1;
 }
 
-/* --- New Game button (in status bar, matches other games) --- */
-
-.ludo-new-game-btn {
+.ludoNewGameBtn {
   margin-left: 4px;
   padding: 5px 14px;
   background: rgba(255, 255, 255, 0.1);
@@ -264,6 +254,6 @@
   transition: background 0.2s;
 }
 
-.ludo-new-game-btn:hover {
+.ludoNewGameBtn:hover {
   background: rgba(255, 255, 255, 0.2);
 }

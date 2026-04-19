@@ -1,4 +1,4 @@
-.checkers-container {
+.checkersContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,7 +9,7 @@
   gap: 16px;
 }
 
-.game-title {
+.gameTitle {
   margin: 0;
   font-size: 2.6rem;
   font-weight: 700;
@@ -17,7 +17,7 @@
   letter-spacing: 0.05em;
 }
 
-.status-bar {
+.statusBar {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -28,13 +28,13 @@
   backdrop-filter: blur(10px);
 }
 
-.winner-text {
+.winnerText {
   font-size: 1.1em;
   font-weight: bold;
   color: #f0c040;
 }
 
-.turn-text {
+.turnText {
   font-size: 0.95em;
   opacity: 0.9;
   display: flex;
@@ -43,13 +43,13 @@
   line-height: 1;
 }
 
-.turn-emoji {
+.turnEmoji {
   font-size: 18px;
   line-height: 1;
   display: inline-block;
 }
 
-.new-game-button {
+.newGameButton {
   margin-left: 12px;
   padding: 5px 14px;
   background: rgba(255, 255, 255, 0.1);
@@ -61,11 +61,11 @@
   transition: background 0.2s;
 }
 
-.new-game-button:hover {
+.newGameButton:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.board-grid {
+.boardGrid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
@@ -94,27 +94,27 @@
   transition: background 0.2s;
 }
 
-.light-square {
+.lightSquare {
   background: #f0d9b5;
 }
 
-.dark-square {
+.darkSquare {
   background: #b58863;
 }
 
-.selected-square {
+.selectedSquare {
   background: #7fc97f;
 }
 
-.last-move-square {
+.lastMoveSquare {
   background: #aad4a0;
 }
 
-.clickable-square {
+.clickableSquare {
   cursor: pointer;
 }
 
-.piece-wrapper {
+.pieceWrapper {
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -127,7 +127,7 @@
   z-index: 1;
 }
 
-.piece-wrapper-selected {
+.pieceWrapperSelected {
   transform: scale(1.08);
 }
 
@@ -145,19 +145,17 @@
   overflow: hidden;
 }
 
-.piece-red {
+.pieceRed {
   background: #c0392b;
   border: 3px solid #7b261c;
-  
 }
 
-.piece-black {
-  background: #292929; 
+.pieceBlack {
+  background: #292929;
   border: 3px solid #222222;
-  
 }
 
-.king-symbol {
+.kingSymbol {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,21 +167,21 @@
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
-.king-ring {
+.kingRing {
   position: absolute;
   inset: 2px;
   border-radius: 50%;
 }
 
-.king-ring-red {
+.kingRingRed {
   border: 2px solid rgba(255, 220, 100, 0.6);
 }
 
-.king-ring-black {
+.kingRingBlack {
   border: 2px solid rgba(255, 215, 0, 0.5);
 }
 
-.valid-move-dot {
+.validMoveDot {
   width: 28%;
   height: 28%;
   border-radius: 50%;
@@ -192,7 +190,7 @@
   pointer-events: none;
 }
 
-.valid-capture-ring {
+.validCaptureRing {
   position: absolute;
   inset: 4px;
   border-radius: 50%;
@@ -201,21 +199,21 @@
   z-index: 2;
 }
 
-.selectable-highlight {
+.selectableHighlight {
   position: absolute;
   inset: 0;
   background: rgba(255, 255, 100, 0.15);
   pointer-events: none;
 }
 
-.piece-counts {
+.pieceCounts {
   display: flex;
   gap: 32px;
   font-size: 0.85em;
   opacity: 0.7;
 }
 
-.status-msg-banner {
+.statusMsgBanner {
   background: rgba(255, 80, 80, 0.15);
   border: 1px solid rgba(255, 80, 80, 0.4);
   border-radius: 10px;
@@ -224,7 +222,7 @@
   font-size: 0.9em;
 }
 
-.online-indicator {
+.onlineIndicator {
   font-size: 0.8em;
   opacity: 0.5;
   letter-spacing: 0.05em;

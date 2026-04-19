@@ -5,15 +5,14 @@ import rules from "../games/CheckersGame";
 import socket from "../../socket";
 
 export default function CheckersBoard() {
+
   const location = useLocation();
   const { color, online } = location.state || {};
-
   const [gameState, setGameState] = useState(() => rules.getInitialState());
   const [selected, setSelected] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const [lastMove, setLastMove] = useState(null);
   const [statusMsg, setStatusMsg] = useState("");
-
   const myColor = color || "r";
   const isMyTurn = !online || gameState.turn === myColor;
 
@@ -28,14 +27,13 @@ export default function CheckersBoard() {
     }
   }, [selected, gameState]);
 
-  // Auto-select the piece that must continue a chain jump
   useEffect(() => {
     if (gameState.mustJumpFrom !== null) {
       setSelected(gameState.mustJumpFrom);
     }
   }, [gameState.mustJumpFrom]);
 
-  // Listen for opponent's moves over the socket
+
   useEffect(() => {
     if (!online) return;
 
@@ -101,12 +99,12 @@ export default function CheckersBoard() {
     const isKing = piece === "R" || piece === "B";
 
     return (
-      <div className={`piece ${isRed ? "piece-red" : "piece-black"}`}>
-        {isKing && <span className="king-symbol">♛</span>}
+      <div className={`piece ${isRed ? "pieceRed" : "pieceBlack"}`}>
+        {isKing && <span className="kingSymbol">♛</span>}
         {isKing && (
           <div
-            className={`king-ring ${
-              isRed ? "king-ring-red" : "king-ring-black"
+            className={`kingRing ${
+              isRed ? "kingRingRed" : "kingRingBlack"
             }`}
           />
         )}
@@ -115,29 +113,27 @@ export default function CheckersBoard() {
   };
 
   return (
-    <div className="checkers-container">
-      <h1 className="game-title">CHECKERS</h1>
+    <div className="checkersContainer">
+      <h1 className="gameTitle">CHECKERS</h1>
 
-      {/* Opponent disconnected banner */}
       {statusMsg && (
-        <div className="status-msg-banner">{statusMsg}</div>
+        <div className="statusMsgBanner">{statusMsg}</div>
       )}
 
-      {/* Online indicator */}
       {online && (
-        <div className="online-indicator">
+        <div className="onlineIndicator">
           You are playing as {myColor === "r" ? "🔴 Red" : "⚫ Black"}
         </div>
       )}
 
-      <div className="status-bar">
+      <div className="statusBar">
         {gameState.winner ? (
-          <span className="winner-text">
+          <span className="winnerText">
             {gameState.winner === "r" ? "🔴 Red Wins!" : "⚫ Black Wins!"}
           </span>
         ) : (
-          <span className="turn-text">
-            <span className="turn-emoji">
+          <span className="turnText">
+            <span className="turnEmoji">
               {gameState.turn === "r" ? "🔴" : "⚫"}
             </span>
             <span>
@@ -153,13 +149,13 @@ export default function CheckersBoard() {
         )}
 
         {!online && (
-          <button className="new-game-button" onClick={resetGame}>
+          <button className="newGameButton" onClick={resetGame}>
             New Game
           </button>
         )}
       </div>
 
-      <div className="board-grid">
+      <div className="boardGrid">
         {Array(64)
           .fill(null)
           .map((_, idx) => {
@@ -175,13 +171,13 @@ export default function CheckersBoard() {
               lastMove && (lastMove.from === idx || lastMove.to === idx);
 
             let squareClass = isDark
-              ? "square dark-square"
-              : "square light-square";
+              ? "square darkSquare"
+              : "square lightSquare";
 
             if (isDark && isSelected) {
-              squareClass = "square selected-square";
+              squareClass = "square selectedSquare";
             } else if (isDark && wasLastMove) {
-              squareClass = "square last-move-square";
+              squareClass = "square lastMoveSquare";
             }
 
             const isClickable =
@@ -192,18 +188,18 @@ export default function CheckersBoard() {
                 key={idx}
                 onClick={() => handleSquareClick(idx)}
                 className={`${squareClass} ${
-                  isClickable ? "clickable-square" : ""
+                  isClickable ? "clickableSquare" : ""
                 }`}
               >
-                {isValidDest && !piece && <div className="valid-move-dot" />}
-                {isValidDest && piece && <div className="valid-capture-ring" />}
+                {isValidDest && !piece && <div className="validMoveDot" />}
+                {isValidDest && piece && <div className="validCaptureRing" />}
                 {isSelectable && piece && (
-                  <div className="selectable-highlight" />
+                  <div className="selectableHighlight" />
                 )}
 
                 <div
-                  className={`piece-wrapper ${
-                    isSelected ? "piece-wrapper-selected" : ""
+                  className={`pieceWrapper ${
+                    isSelected ? "pieceWrapperSelected" : ""
                   }`}
                 >
                   {renderPiece(piece)}
@@ -213,7 +209,7 @@ export default function CheckersBoard() {
           })}
       </div>
 
-      <div className="piece-counts">
+      <div className="pieceCounts">
         <span>
           🔴 Red:{" "}
           {gameState.board.filter((p) => p && p.toLowerCase() === "r").length}

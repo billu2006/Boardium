@@ -178,7 +178,6 @@ export const useLudoGame = ({ onRoll, onMove } = {}) => {
     if (onMove) onMove(tokenIndex);
   };
 
-  // Apply a dice roll received from an opponent over the socket
   const applyExternalRoll = (value) => {
     setGameState(prev => {
       const currentPlayer = prev.currentPlayer;
@@ -207,7 +206,6 @@ export const useLudoGame = ({ onRoll, onMove } = {}) => {
     });
   };
 
-  // Apply a token move received from an opponent over the socket
   const applyExternalMove = (tokenIndex) => {
     setGameState(prev => {
       const player = prev.currentPlayer;

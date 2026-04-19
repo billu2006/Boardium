@@ -52,55 +52,54 @@ const LudoBoard = () => {
   }, [online]);
 
   const handleTokenClick = (pi, ti) => {
-    // In online mode, only allow clicking your own tokens
     if (online && pi !== myPlayerIndex) return;
     moveToken(pi, ti);
   };
 
   return (
-    <div className="ludo-page">
-      <h1 className="game-title">LUDO</h1>
+    <div className="ludoPage">
+      <h1 className="gameTitle">LUDO</h1>
 
       {statusMsg && (
-        <div className="ludo-disconnect-banner">{statusMsg}</div>
+        <div className="ludoDisconnectBanner">{statusMsg}</div>
       )}
 
       {online && (
-        <div className="ludo-online-indicator">
+        <div className="ludoOnlineIndicator">
           You are playing as {playerLabels[myPlayerIndex]}
         </div>
       )}
 
-      <div className="ludo-status-bar">
+      <div className="ludoStatusBar">
         {gameState.winner !== undefined && gameState.winner !== null ? (
-          <span className="ludo-winner-text">
-            <span className="turn-emoji">{colorEmojis[gameState.winner]}</span>
+          <span className="ludoWinnerText">
+            <span className="turnEmoji">{colorEmojis[gameState.winner]}</span>
             {gameState.winner} Wins!
           </span>
         ) : (
-          <span className="ludo-turn-text">
-            <span className="turn-emoji">
+          <span className="ludoTurnText">
+            <span className="turnEmoji">
               {colorEmojis[gameState.players[gameState.currentPlayer].color]}
             </span>
-            <span className="turn-name">
+            <span className="turnName">
               {online
                 ? isMyTurn ? "Your turn" : `${gameState.players[gameState.currentPlayer].color}'s turn`
                 : `${gameState.players[gameState.currentPlayer].color}'s turn`}
             </span>
             {gameState.extraTurn && !gameState.diceValue && (
-              <span className="extra-turn">Extra turn</span>
+              <span className="extraTurn">Extra turn</span>
             )}
           </span>
         )}
         {!online && (
-          <button className="ludo-new-game-btn" onClick={resetGame}>New Game</button>
+          <button className="ludoNewGameBtn" onClick={resetGame}>New Game</button>
         )}
       </div>
 
-      <div className="ludo-board-area">
-        <div className="ludo-board-spacer" />
+      <div className="ludoBoardArea">
+        <div className="ludoBoardSpacer" />
 
-        <div className="board-wrap">
+        <div className="boardWrap">
           <div className="board">
             {Array.from({ length: 15 }).map((_, r) =>
               Array.from({ length: 15 }).map((_, c) => {
@@ -138,32 +137,32 @@ const LudoBoard = () => {
 
                 return (
                   <React.Fragment key={`${r}-${c}`}>
-                    <div className="board-cell" style={{ left: x, top: y, background: color }} />
+                    <div className="boardCell" style={{ left: x, top: y, background: color }} />
                     {isStartStar && (
-                      <div className="start-star" style={{ left: x, top: y }}>★</div>
+                      <div className="startStar" style={{ left: x, top: y }}>★</div>
                     )}
                   </React.Fragment>
                 );
               })
             )}
 
-            <div className="center-triangles">
-              <div className="triangle triangle-top" />
-              <div className="triangle triangle-right" />
-              <div className="triangle triangle-bottom" />
-              <div className="triangle triangle-left" />
+            <div className="centerTriangles">
+              <div className="triangle triangleTop" />
+              <div className="triangle triangleRight" />
+              <div className="triangle triangleBottom" />
+              <div className="triangle triangleLeft" />
             </div>
 
-            <div className="spawn-area top-left" />
-            <div className="spawn-area top-right" />
-            <div className="spawn-area bottom-left" />
-            <div className="spawn-area bottom-right" />
+            <div className="spawnArea topLeft" />
+            <div className="spawnArea topRight" />
+            <div className="spawnArea bottomLeft" />
+            <div className="spawnArea bottomRight" />
 
             {homeZones.map((zone, pi) =>
               zone.map(([r, c], zi) => (
                 <div
                   key={`spawn-${pi}-${zi}`}
-                  className="spawn-box"
+                  className="spawnBox"
                   style={{ left: c * 40, top: r * 40 }}
                 />
               ))
@@ -201,11 +200,11 @@ const LudoBoard = () => {
             gameState.diceValue !== null ||
             (online && !isMyTurn)
           }
-          className="ludo-roll-btn"
+          className="ludoRollBtn"
         >
-          <span className="ludo-dice-icon">🎲</span>
-          <span className="ludo-dice-label">Roll Dice</span>
-          <span className="ludo-dice-value">
+          <span className="ludoDiceIcon">🎲</span>
+          <span className="ludoDiceLabel">Roll Dice</span>
+          <span className="ludoDiceValue">
             {gameState.diceRolling
               ? "..."
               : gameState.diceValue ?? gameState.lastRoll ?? "-"}

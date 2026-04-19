@@ -248,7 +248,6 @@ export const getPieceMoves = (
       const newBoard = board.map(r => [...r]);
       newBoard[toRow][toCol] = newBoard[row][col];
       newBoard[row][col] = null;
-      // En passant: remove the captured pawn (it sits on a different square than the destination)
       if (pieceType === 'P' && enPassantTarget?.[0] === toRow && enPassantTarget?.[1] === toCol) {
         const epRow = color === 'white' ? toRow + 1 : toRow - 1;
         newBoard[epRow][toCol] = null;

@@ -40,7 +40,6 @@ export default function Connect4Board() {
   const [gameState, setGameState] = useState(() => rules.getInitialState());
   const [statusMsg, setStatusMsg] = useState("");
 
-  // MainMenu sends 'b' for the joiner (generic color), but Connect4 uses 'r'/'y'
   const myColor = color === "r" ? "r" : "y";
   const isMyTurn = !online || gameState.turn === myColor;
 
@@ -80,28 +79,28 @@ export default function Connect4Board() {
   };
 
   return (
-    <div className="c4-container">
-      <h1 className="game-title">CONNECT 4</h1>
+    <div className="c4Container">
+      <h1 className="gameTitle">CONNECT 4</h1>
 
       {statusMsg && (
-        <div className="c4-disconnect-banner">{statusMsg}</div>
+        <div className="c4DisconnectBanner">{statusMsg}</div>
       )}
 
       {online && (
-        <div className="c4-online-indicator">
+        <div className="c4OnlineIndicator">
           You are playing as {playerEmojis[myColor]}{" "}
           {myColor === "r" ? "Red" : "Yellow"}
         </div>
       )}
 
-      <div className="c4-status-bar">
+      <div className="c4StatusBar">
         {gameState.winner ? (
-          <span className="c4-winner-text">
+          <span className="c4WinnerText">
             {gameState.winner === "draw" ? (
               "It's a Draw! 🤝"
             ) : (
               <>
-                <span className="c4-emoji">
+                <span className="c4Emoji">
                   {playerEmojis[gameState.winner]}
                 </span>
                 {gameState.winner === "r" ? "Red Wins!" : "Yellow Wins!"}
@@ -109,8 +108,8 @@ export default function Connect4Board() {
             )}
           </span>
         ) : (
-          <span className="c4-turn-text">
-            <span className="c4-emoji">{playerEmojis[gameState.turn]}</span>
+          <span className="c4TurnText">
+            <span className="c4Emoji">{playerEmojis[gameState.turn]}</span>
             {online
               ? isMyTurn
                 ? "Your turn"
@@ -121,16 +120,16 @@ export default function Connect4Board() {
           </span>
         )}
         {!online && (
-          <button className="c4-new-game-btn" onClick={resetGame}>
+          <button className="c4NewGameBtn" onClick={resetGame}>
             New Game
           </button>
         )}
       </div>
 
-      <div className="c4-board-outer">
-        <div className="c4-board-inner">
+      <div className="c4BoardOuter">
+        <div className="c4BoardInner">
           {Array.from({ length: 6 }, (_, row) => (
-            <div key={row} className="c4-row">
+            <div key={row} className="c4Row">
               {Array.from({ length: 7 }, (_, col) => {
                 const idx = row * 7 + col;
                 const cell = gameState.board[idx];
@@ -141,12 +140,12 @@ export default function Connect4Board() {
                 return (
                   <div
                     key={col}
-                    className={`c4-cell${disabled ? " disabled" : ""}`}
+                    className={`c4Cell${disabled ? " disabled" : ""}`}
                     onClick={() => handleColumnClick(col)}
                   >
                     {cell && (
                       <div
-                        className={`c4-disc ${cell}${
+                        className={`c4Disc ${cell}${
                           isWinning ? " winning" : ""
                         }`}
                       />

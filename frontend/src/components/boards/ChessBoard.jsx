@@ -36,7 +36,6 @@ export default function ChessBoard() {
   const location = useLocation();
   const { color, online } = location.state || {};
 
-  // Creator gets white ('r'), joiner gets black ('b')
   const myColor = color === "r" ? "white" : "black";
 
   const [board, setBoard] = useState(() => initialBoard.map(r => [...r]));
@@ -76,7 +75,6 @@ export default function ChessBoard() {
     setStatusMsg("");
   };
 
-  // Keep a ref so the socket handler always calls the latest executeMove
   const executeMoveRef = useRef(null);
 
   const handleSquareClick = (row, col) => {
@@ -113,7 +111,6 @@ export default function ChessBoard() {
     }
   };
 
-  // promotionType: pass uppercase piece type (e.g. "Q") to skip dialog (used for opponent's online move)
   const executeMove = (fromRow, fromCol, toRow, toCol, promotionType = null) => {
     const nb = board.map(r => [...r]);
     const piece = nb[fromRow][fromCol];
@@ -123,14 +120,12 @@ export default function ChessBoard() {
     const newCR = { ...castlingRights };
     let newEP = null;
 
-    // En passant capture
     if (type === "P" && enPassantTarget?.[0] === toRow && enPassantTarget?.[1] === toCol) {
       const epRow = color === "white" ? toRow + 1 : toRow - 1;
       captured = nb[epRow][toCol];
       nb[epRow][toCol] = null;
     }
 
-    // Castling — move rook
     if (type === "K" && Math.abs(toCol - fromCol) === 2) {
       if (toCol === 6) { nb[fromRow][5] = nb[fromRow][7]; nb[fromRow][7] = null; }
       else             { nb[fromRow][3] = nb[fromRow][0]; nb[fromRow][0] = null; }
@@ -139,7 +134,6 @@ export default function ChessBoard() {
     nb[toRow][toCol] = piece;
     nb[fromRow][fromCol] = null;
 
-    // Update castling rights
     if (type === "K") {
       if (color === "white") { newCR.whiteKingSide = false; newCR.whiteQueenSide = false; }
       else                   { newCR.blackKingSide = false; newCR.blackQueenSide = false; }
@@ -150,17 +144,14 @@ export default function ChessBoard() {
       if (fromRow === 0 && fromCol === 7) newCR.blackKingSide = false;
       if (fromRow === 0 && fromCol === 0) newCR.blackQueenSide = false;
     }
-    // Revoke castling rights if a rook is captured on its starting square
     if (toRow === 7 && toCol === 7) newCR.whiteKingSide = false;
     if (toRow === 7 && toCol === 0) newCR.whiteQueenSide = false;
     if (toRow === 0 && toCol === 7) newCR.blackKingSide = false;
     if (toRow === 0 && toCol === 0) newCR.blackQueenSide = false;
 
-    // En passant setup
     if (type === "P" && Math.abs(toRow - fromRow) === 2)
       newEP = [(fromRow + toRow) / 2, toCol];
 
-    // Pawn promotion
     if (type === "P" && (toRow === 0 || toRow === 7)) {
       if (captured) {
         if (color === "white") setCapturedByWhite(p => [...p, captured]);
@@ -172,7 +163,6 @@ export default function ChessBoard() {
       setValidMoves([]);
 
       if (promotionType !== null) {
-        // Opponent's online promotion — apply directly without dialog
         const promoted = color === "white" ? promotionType : promotionType.toLowerCase();
         nb[toRow][toCol] = promoted;
         finalize(nb, color === "white" ? "P" : "p", fromRow, fromCol, toRow, toCol, captured, newCR, newEP, color, promoted);
@@ -185,7 +175,6 @@ export default function ChessBoard() {
     finalize(nb, piece, fromRow, fromCol, toRow, toCol, captured, newCR, newEP, color, null);
   };
 
-  // Keep ref current so socket handler is never stale
   executeMoveRef.current = executeMove;
 
   const finalize = (nb, piece, fromRow, fromCol, toRow, toCol, captured, newCR, newEP, color, promotedPiece) => {
@@ -233,7 +222,6 @@ export default function ChessBoard() {
     }
   };
 
-  // Socket listeners for online mode
   useEffect(() => {
     if (!online) return;
 
@@ -251,7 +239,6 @@ export default function ChessBoard() {
     };
   }, [online]);
 
-  // Pair moves into rows for display
   const movePairs = [];
   for (let i = 0; i < moveHistory.length; i += 2) {
     movePairs.push({
@@ -266,72 +253,68 @@ export default function ChessBoard() {
   const checkedKey = kingPos ? `${kingPos[0]},${kingPos[1]}` : null;
 
   return (
-    <div className="chess-container">
-      <h1 className="game-title">CHESS</h1>
+    <div className="chessContainer">
+      <h1 className="gameTitle">CHESS</h1>
 
       {statusMsg && (
-        <div className="chess-disconnect-banner">{statusMsg}</div>
+        <div className="chessDisconnectBanner">{statusMsg}</div>
       )}
 
       {online && (
-        <div className="chess-online-indicator">
+        <div className="chessOnlineIndicator">
           You are playing as {myColor === "white" ? "⚪ White" : "⚫ Black"}
         </div>
       )}
 
-      {/* Status bar */}
-      <div className="chess-status-bar">
+      <div className="chessStatusBar">
         {winner ? (
-          <span className="chess-winner-text">
+          <span className="chessWinnerText">
             {winner === "draw"
               ? "Stalemate — Draw!"
               : `${winner === "white" ? "⚪" : "⚫"} ${winner === "white" ? "White" : "Black"} Wins!`}
           </span>
         ) : (
-          <span className="chess-turn-text">
-            <span className="chess-turn-icon">{turn === "white" ? "⚪" : "⚫"}</span>
+          <span className="chessTurnText">
+            <span className="chessTurnIcon">{turn === "white" ? "⚪" : "⚫"}</span>
             {online
               ? isMyTurn ? "Your turn" : "Opponent's turn"
               : `${turn === "white" ? "White" : "Black"}'s turn`}
-            {inCheck && <span className="chess-check-badge">Check!</span>}
+            {inCheck && <span className="chessCheckBadge">Check!</span>}
           </span>
         )}
         {!online && (
-          <button className="chess-new-game-btn" onClick={resetGame}>New Game</button>
+          <button className="chessNewGameBtn" onClick={resetGame}>New Game</button>
         )}
       </div>
 
-      {/* Main 3-column layout */}
-      <div className="chess-main">
+      <div className="chessMain">
 
-        {/* Left — captured pieces */}
-        <div className="chess-panel">
-          <h3 className="chess-panel-title">Captured</h3>
-          <div className="chess-captured-group">
-            <span className="chess-cap-label">By White</span>
-            <div className="chess-cap-pieces">
+        <div className="chessPanel">
+          <h3 className="chessPanelTitle">Captured</h3>
+          <div className="chessCapturedGroup">
+            <span className="chessCapLabel">By White</span>
+            <div className="chessCapPieces">
               {capturedByWhite.length === 0
-                ? <span className="chess-empty">—</span>
+                ? <span className="chessEmpty">—</span>
                 : capturedByWhite.map((p, i) => (
-                    <span key={i} className="chess-cap-piece bp">{pieceSymbols[p]}</span>
+                    <span key={i} className="chessCapPiece bp">{pieceSymbols[p]}</span>
                   ))}
             </div>
           </div>
-          <div className="chess-captured-group">
-            <span className="chess-cap-label">By Black</span>
-            <div className="chess-cap-pieces">
+          <div className="chessCapturedGroup">
+            <span className="chessCapLabel">By Black</span>
+            <div className="chessCapPieces">
               {capturedByBlack.length === 0
-                ? <span className="chess-empty">—</span>
+                ? <span className="chessEmpty">—</span>
                 : capturedByBlack.map((p, i) => (
-                    <span key={i} className="chess-cap-piece wp">{pieceSymbols[p]}</span>
+                    <span key={i} className="chessCapPiece wp">{pieceSymbols[p]}</span>
                   ))}
             </div>
           </div>
         </div>
 
-        {/* Center — board */}
-        <div className="chess-board-wrap">
-          <div className="chess-board">
+        <div className="chessBoardWrap">
+          <div className="chessBoard">
             {board.map((row, rIdx) =>
               row.map((piece, cIdx) => {
                 const isLight = (rIdx + cIdx) % 2 === 0;
@@ -345,23 +328,23 @@ export default function ChessBoard() {
                 const isClickable = !winner && !promotionPending && isMyTurn &&
                   ((piece && getPieceColor(piece) === turn) || isValidDest);
 
-                let cls = `chess-sq ${isLight ? "light" : "dark"}`;
+                let cls = `chessSq ${isLight ? "light" : "dark"}`;
                 if (isSel) cls += " selected";
-                else if (isLM) cls += " last-move";
-                if (isCheckSq) cls += " in-check";
+                else if (isLM) cls += " lastMove";
+                if (isCheckSq) cls += " inCheck";
                 if (isClickable) cls += " clickable";
 
                 return (
                   <div key={`${rIdx}-${cIdx}`} className={cls} onClick={() => handleSquareClick(rIdx, cIdx)}>
-                    {isValidDest && !piece && <div className="chess-dot" />}
-                    {isValidDest && piece && <div className="chess-capture-ring" />}
+                    {isValidDest && !piece && <div className="chessDot" />}
+                    {isValidDest && piece && <div className="chessCaptureRing" />}
                     {piece && (
-                      <span className={`chess-piece ${isWhitePiece(piece) ? "wp" : "bp"}`}>
+                      <span className={`chessPiece ${isWhitePiece(piece) ? "wp" : "bp"}`}>
                         {pieceSymbols[piece]}
                       </span>
                     )}
-                    {cIdx === 0 && <span className="sq-rank">{8 - rIdx}</span>}
-                    {rIdx === 7 && <span className="sq-file">{String.fromCharCode(97 + cIdx)}</span>}
+                    {cIdx === 0 && <span className="sqRank">{8 - rIdx}</span>}
+                    {rIdx === 7 && <span className="sqFile">{String.fromCharCode(97 + cIdx)}</span>}
                   </div>
                 );
               })
@@ -369,33 +352,31 @@ export default function ChessBoard() {
           </div>
         </div>
 
-        {/* Right — move history */}
-        <div className="chess-panel">
-          <h3 className="chess-panel-title">Moves</h3>
-          <div className="chess-move-list">
+        <div className="chessPanel">
+          <h3 className="chessPanelTitle">Moves</h3>
+          <div className="chessMoveList">
             {movePairs.length === 0
-              ? <span className="chess-empty">No moves yet</span>
+              ? <span className="chessEmpty">No moves yet</span>
               : movePairs.map(mp => (
-                  <div key={mp.num} className="chess-move-row">
-                    <span className="chess-move-num">{mp.num}.</span>
-                    <span className="chess-move-white">{mp.white}</span>
-                    <span className="chess-move-black">{mp.black}</span>
+                  <div key={mp.num} className="chessMoveRow">
+                    <span className="chessMoveNum">{mp.num}.</span>
+                    <span className="chessMoveWhite">{mp.white}</span>
+                    <span className="chessMoveBlack">{mp.black}</span>
                   </div>
                 ))}
           </div>
         </div>
       </div>
 
-      {/* Promotion dialog */}
       {promotionPending && (
-        <div className="chess-promo-overlay">
-          <div className="chess-promo-modal">
-            <p className="chess-promo-title">Promote pawn</p>
-            <div className="chess-promo-choices">
+        <div className="chessPromoOverlay">
+          <div className="chessPromoModal">
+            <p className="chessPromoTitle">Promote pawn</p>
+            <div className="chessPromoChoices">
               {["Q", "R", "B", "N"].map(pt => {
                 const p = promotionPending.color === "white" ? pt : pt.toLowerCase();
                 return (
-                  <button key={pt} className="chess-promo-btn" onClick={() => handlePromotion(pt)}>
+                  <button key={pt} className="chessPromoBtn" onClick={() => handlePromotion(pt)}>
                     {pieceSymbols[p]}
                   </button>
                 );

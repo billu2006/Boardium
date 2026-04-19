@@ -6,6 +6,7 @@ import chessImg from '../assets/ChessIcon.png';
 import ludoImg from '../assets/LudoIcon.png';
 import checkersImg from '../assets/CheckersIcon.png';
 import connect4Img from '../assets/Connect4Icon.png';
+import logoImg from '../assets/Logo.png';
 
 export default function MainMenu() {
   const navigate = useNavigate();
@@ -110,6 +111,7 @@ export default function MainMenu() {
     <div className="lobbyContainer">
       <aside className="sidebar">
         <div className="sidebarTop">
+          <img src={logoImg} alt="Boardium logo" className="sidebarLogo" />
           <h1 className="logo">Boardium</h1>
           <nav className="navLinks">
             <button className="navButton" onClick={() => navigate("/guide")}>
