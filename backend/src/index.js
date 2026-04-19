@@ -28,14 +28,15 @@ io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
 
   // Player creates a new game room
-  socket.on('createGame', () => {
+  socket.on('createGame', ({ maxPlayers = 2 } = {}) => {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    rooms[code] = { players: [socket.id], state: null };
+    rooms[code] = { players: [socket.id], maxPlayers, state: null };
     socket.join(code);
     socket.currentCode = code;
-    socket.playerColor = 'r'; // creator plays red
+    socket.playerIndex = 0;
     socket.emit('gameCreated', { code });
-    console.log(`Room created: ${code}`);
+    socket.emit('playerJoined', { count: 1, maxPlayers });
+    console.log(`Room created: ${code} (max ${maxPlayers} players)`);
   });
 
   // Player joins an existing room
@@ -45,18 +46,25 @@ io.on('connection', (socket) => {
     if (!room) {
       return socket.emit('joinError', 'Room not found.');
     }
-    if (room.players.length >= 2) {
+    if (room.players.length >= room.maxPlayers) {
       return socket.emit('joinError', 'Room is full.');
     }
 
     room.players.push(socket.id);
     socket.join(code);
     socket.currentCode = code;
-    socket.playerColor = 'b'; // joiner plays black
+    socket.playerIndex = room.players.length - 1;
 
-    // Tell both players to start
-    io.to(code).emit('startGame', { code });
-    console.log(`Room ${code} is now full — game starting`);
+    // Notify all players of current count
+    io.to(code).emit('playerJoined', { count: room.players.length, maxPlayers: room.maxPlayers });
+
+    if (room.players.length === room.maxPlayers) {
+      // Send startGame individually so each player knows their own index
+      room.players.forEach((sid, idx) => {
+        io.to(sid).emit('startGame', { code, playerIndex: idx });
+      });
+      console.log(`Room ${code} is now full — game starting`);
+    }
   });
 
   // Broadcast a move to the other player in the room
