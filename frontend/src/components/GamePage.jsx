@@ -6,7 +6,7 @@ import Connect4Board from "./boards/Connect4Board";
 import ChessBoard from "./boards/ChessBoard";
 
 export default function GamePage() {
-  const { gameType } = useParams(); 
+  const { gameType } = useParams();
   const navigate = useNavigate();
 
   const renderGameBoard = () => {
@@ -14,15 +14,15 @@ export default function GamePage() {
     if (gameType === 'checkers') return <CheckersBoard />;
     if (gameType === 'ludo') return <LudoBoard />;
     if (gameType === 'connect4') return <Connect4Board />;
-    
+
     return <h2>Game not found!</h2>;
   };
 
   return (
-    <div className="game-layout">
-      <button className="back-btn" onClick={() => navigate("/")}>← Back</button>
+    <div className="gameLayout">
+      <button className="backBtn" onClick={() => navigate("/")}>← Back</button>
 
-      <main className="board-area">
+      <main className="boardArea">
         {renderGameBoard()}
       </main>
     </div>

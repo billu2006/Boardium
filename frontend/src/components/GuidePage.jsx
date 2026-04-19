@@ -5,7 +5,7 @@ export default function GuidePage() {
 
   return (
     <div className="guidePage">
-      <button className="back-btn" onClick={() => navigate("/")}>← Back</button>
+      <button className="backBtn" onClick={() => navigate("/")}>← Back</button>
 
       <h1>Game Guide</h1>
 
@@ -15,7 +15,7 @@ export default function GuidePage() {
        <p><strong>Win:</strong> First to connect 4 horizontally, vertically, or diagonally.</p>
 
       <h2>Chess</h2>
-        <p><strong>Goal:</strong> Checkmate the opponent’s king.</p>
+        <p><strong>Goal:</strong> Checkmate the opponent's king.</p>
         <p><strong>How to play:</strong> Each piece moves differently. </p>
         <p><strong>Pawn:</strong> Moves forward one square, captures diagonally.</p>
         <p><strong>Rook:</strong> Moves any number of squares horizontally or vertically.</p>

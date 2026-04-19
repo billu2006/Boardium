@@ -61,7 +61,6 @@ class CheckersRules {
     if (piece === "r" && row === 0) { board[move.to] = "R"; promoted = true; }
     if (piece === "b" && row === 7) { board[move.to] = "B"; promoted = true; }
 
-    // Check for chain jump (promotion ends the chain per standard rules)
     let mustJumpFrom = null;
     if (move.captures && move.captures.length > 0 && !promoted) {
       const continueMoves = this._getMovesForPiece(board, move.to, board[move.to]).filter(
