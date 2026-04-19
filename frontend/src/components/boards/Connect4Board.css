@@ -57,6 +57,20 @@
   flex-shrink: 0;
 }
 
+.c4-disconnect-banner {
+  background: rgba(255, 80, 80, 0.15);
+  border: 1px solid rgba(255, 80, 80, 0.4);
+  border-radius: 10px;
+  padding: 8px 20px;
+  color: salmon;
+  font-size: 0.9em;
+}
+
+.c4-online-indicator {
+  font-size: 0.8em;
+  opacity: 0.5;
+}
+
 .c4-new-game-btn {
   margin-left: 12px;
   padding: 5px 14px;
@@ -76,12 +90,18 @@
 
 /* --- Board --- */
 
+/* --- Board --- */
+
 .c4-board-outer {
   background: #3d3d3d;
   padding: 12px;
-  border-radius: 18px;
-  border: 3px solid #454545;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 3px rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    0 0 0 3px rgba(255, 255, 255, 0.08);
+  border: 3px solid rgba(35, 35, 35, 0.7);
+  box-sizing: border-box;
 }
 
 .c4-board-inner {
@@ -120,7 +140,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 3px solid #222222';
+  border: 3px solid #222222;
 }
 
 .c4-disc.r {

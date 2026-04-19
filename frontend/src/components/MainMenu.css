@@ -107,3 +107,93 @@
   font-size: 1.8rem;
   font-weight: bold;
 }
+
+
+.lobbyPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 100%;
+  color: #e8e0d0;
+  transform: translateX(-35px);
+}
+
+
+.lobbyTitle {
+  margin: 0 0 8px 0;
+  font-size: 1.8rem;
+}
+
+.lobbyBtn {
+  width: 200px;
+  text-align: center;
+  font-size: 1rem;
+  color: #e8e0d0;
+}
+
+.lobbyDivider {
+  opacity: 0.4;
+  font-size: 0.95rem;
+}
+
+/* Pending room code */
+
+.pendingCode {
+  text-align: center;
+}
+
+.pendingLabel {
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.codeDisplay {
+  font-size: 2.5em;
+  font-weight: bold;
+  letter-spacing: 0.3em;
+  color: #646cff;
+  margin: 12px 0;
+}
+
+.waitingLabel {
+  opacity: 0.5;
+  font-size: 0.9rem;
+}
+
+/* Join input */
+
+.codeInput {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #1a1a1a;
+  color: white;
+  font-size: 1em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: center;
+  width: 160px;
+}
+
+.codeInput::placeholder {
+  text-transform: none;
+  letter-spacing: normal;
+  opacity: 0.5;
+}
+
+.lobbyError {
+  color: salmon;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.backBtn {
+  margin-top: 8px;
+  opacity: 0.5;
+}
+
+.backBtn:hover {
+  opacity: 1;
+}
