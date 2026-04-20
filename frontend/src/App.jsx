@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import MainMenu from './components/MainMenu';
 import GamePage from './components/GamePage';
@@ -9,7 +9,7 @@ function App() {
   const [status, setStatus] = useState("Connecting to backend...");
 
   useEffect(() => {
-    fetch("http://localhost:3001/health")
+    fetch("https://student.csc.liv.ac.uk/~sgzpate3/proxy.php?path=health/health")
       .then((res) => res.json())
       .then((data) => {
         setStatus(`Backend status: ${data.status}`);

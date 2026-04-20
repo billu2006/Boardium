@@ -11,7 +11,7 @@ const server = http.createServer(app); // wrap express in yhe http server
 
 
 const io = new Server(server, {
-  cors: { origin: 'http://localhost:5173', methods: ['GET', 'POST'] } //the socket.io server for real time communicatin
+  cors: { origin: 'http://lxfarm04', methods: ['GET', 'POST'] } //the socket.io server for real time communicatin
 });
 
 app.use(cors());
@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
 });
 
 //start the server
-const PORT = process.env.PORT || 3001; 
+const PORT = 8080; 
 server.listen(PORT, () => {   
   console.log(`Server is running on port ${PORT}`);
 });
