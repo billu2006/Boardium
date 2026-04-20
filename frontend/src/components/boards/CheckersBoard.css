@@ -28,42 +28,7 @@
   backdrop-filter: blur(10px);
 }
 
-.winnerText {
-  font-size: 1.1em;
-  font-weight: bold;
-  color: #f0c040;
-}
 
-.turnText {
-  font-size: 0.95em;
-  opacity: 0.9;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  line-height: 1;
-}
-
-.turnEmoji {
-  font-size: 18px;
-  line-height: 1;
-  display: inline-block;
-}
-
-.newGameButton {
-  margin-left: 12px;
-  padding: 5px 14px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: #e8e0d0;
-  cursor: pointer;
-  font-size: 0.85em;
-  transition: background 0.2s;
-}
-
-.newGameButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
 
 .boardGrid {
   display: grid;
@@ -93,6 +58,26 @@
   box-sizing: border-box;
   transition: background 0.2s;
 }
+
+
+
+.newGameButton {
+  margin-left: 12px;
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #e8e0d0;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: background 0.2s;
+}
+
+.newGameButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+
 
 .lightSquare {
   background: #f0d9b5;
@@ -226,4 +211,26 @@
   font-size: 0.8em;
   opacity: 0.5;
   letter-spacing: 0.05em;
+}
+
+
+.winnerText {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #f0c040;
+}
+
+.turnText {
+  font-size: 0.95em;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.turnEmoji {
+  font-size: 18px;
+  line-height: 1;
+  display: inline-block;
 }
