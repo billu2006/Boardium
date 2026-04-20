@@ -8,9 +8,7 @@ const rules = new CheckersRules();
 
 export default function CheckersBoard() {
 
-  // retrieve player color and online mode passed via React Router navigation state
   const location = useLocation();
-<<<<<<< HEAD
   const { colour, online } = location.state || {};
 
   const [gameState, setGameState] = useState(() => rules.getInitialState());
@@ -21,20 +19,7 @@ export default function CheckersBoard() {
 
   const myColour = colour === 'r' ? 'red' : 'black';
   const isMyTurn = !online || gameState.turn === myColour;
-=======
-  const { color, online } = location.state || {};
->>>>>>> dev
 
-  const [gameState, setGameState] = useState(() => rules.getInitialState());
-  const [selected, setSelected] = useState(null);     // index of the currently selected square
-  const [validMoves, setValidMoves] = useState([]);   // valid moves for the selected piece
-  const [lastMove, setLastMove] = useState(null);     // tracks the last move for board highlighting
-  const [statusMsg, setStatusMsg] = useState("");     // status messages (e.g. opponent disconnected)
-
-  const myColor = color || "r";                              // default to red if no color assigned (failsafe)
-  const isMyTurn = !online || gameState.turn === myColor;    // in offline mode, it's always "your" turn
-
-  // recalculate valid moves whenever the selected piece or game state changes
   useEffect(() => {
     if (selectedSquare !== null) {
       const movesForSelectedPiece  = rules
@@ -47,23 +32,11 @@ export default function CheckersBoard() {
     }
   }, [selectedSquare, gameState]);
 
-<<<<<<< HEAD
   // set up and tear down socket listeners for online multiplayer
-=======
-  // auto select a piece if it must continue jumping (multi-jump rule)
->>>>>>> dev
   useEffect(() => {
     if (online === false) {
       return;
     }
-<<<<<<< HEAD
-=======
-  }, [gameState.mustJumpFrom]);
-
-  // set up and tear down socket listeners for online multiplayer
-  useEffect(() => {
-    if (!online) return;
->>>>>>> dev
 
     socket.on("opponentMove", (move) => {
       setGameState((prev) => rules.applyMove(prev, move));
