@@ -80,8 +80,9 @@
 }
 
 .boardWrap {
-  overflow: auto;
-  max-width: 90vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 8px;
 }
 
@@ -89,6 +90,9 @@
   position: relative;
   width: 600px;
   height: 600px;
+  transform-origin: top center;
+  transform: scale(var(--board-scale, 1));
+  margin-bottom: calc((600px * var(--board-scale, 1)) - 600px);
   border-radius: 8px;
   overflow: hidden;
   box-shadow:

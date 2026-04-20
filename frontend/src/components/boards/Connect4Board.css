@@ -10,8 +10,8 @@
 }
 
 .c4Disc {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   border: 3px solid #222222;
 }
@@ -115,6 +115,7 @@
 }
 
 .c4BoardOuter {
+  transform-origin: top center;
   background: #3d3d3d;
   padding: 12px;
   border-radius: 8px;
@@ -166,11 +167,7 @@
 }
 
 
-@media (max-width: 600px) {
-  .c4Cell {
-    width: 46px;
-    height: 46px;
-  }
+
 
   .c4Disc {
     width: 36px;

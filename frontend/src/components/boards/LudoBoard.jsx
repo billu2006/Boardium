@@ -20,6 +20,20 @@ const LudoBoard = () => {
   const location = useLocation();
   const {playerIndex: myPlayerIndex, online } = location.state || {};
   const [statusMsg, setStatusMsg] = useState("");
+  const [boardScale, setBoardScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      // available height minus space for status bar (~120px) and padding
+      const availH = window.innerHeight - 200;  // status bar + padding
+      const availW = window.innerWidth - 200;    // roll button (110px) + gaps + padding
+      const available = Math.min(availH, availW);
+      setBoardScale(Math.min(1, available / 600));
+    };
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, []);
 
   // references for the latest handlers
   const applyExternalRollRef = useRef(null);
@@ -117,7 +131,7 @@ const LudoBoard = () => {
       <div className="ludoBoardArea">
         <div className="ludoBoardSpacer" />
 
-        <div className="boardWrap">
+        <div className="boardWrap" style={{ "--board-scale": boardScale }}>
           <div className="board">
             {Array.from({length:15}).map((_, r) =>
               Array.from({length:15}).map((_, c) => {

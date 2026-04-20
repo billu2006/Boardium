@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import "./Connect4Board.css";
 import ConnectFourRules from "../games/Connect4Game";
@@ -56,6 +56,22 @@ export default function Connect4Board() {
 
   const isMyTurn = !online || gameState.turn === myColour;
   const isOver  = rules.isGameOver(gameState);
+  const [boardScale, setBoardScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      // board is 7 cols * 72px + 6 gaps * 8px + 2 * 12px padding = 600px wide
+      // board is 6 rows * 72px + 5 gaps * 8px + 2 * 12px padding = 496px tall
+      const availW = window.innerWidth - 80;
+      const availH = window.innerHeight - 200;
+      const scaleW = availW / 600;
+      const scaleH = availH / 496;
+      setBoardScale(Math.min(1, scaleW, scaleH));
+    };
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, []);
   
 
   // Get winning disc cells for highlight to display
@@ -166,7 +182,7 @@ export default function Connect4Board() {
 
 
 
-      <div className="c4BoardOuter">
+      <div className="c4BoardOuter" style={{ transform: `scale(${boardScale})`, marginBottom: `calc((496px * ${boardScale}) - 496px)` }}>
         <div className="c4BoardInner">
 
           {Array.from({length: 6}, (_, rowIndex) => (

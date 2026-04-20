@@ -34,8 +34,8 @@
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
-  width: min(560px, 90vw);
-  height: min(560px, 90vw);
+  width: min(560px, 90vw, 90vh);
+  height: min(560px, 90vw, 90vh);
   border-radius: 8px;
   overflow: hidden;
   box-shadow:
