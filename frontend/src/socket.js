@@ -6,6 +6,7 @@ let channel = null;
 const listeners = {};
 let myPlayerIndex = null;
 let currentCode = null;
+let myClientId = null;
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -13,9 +14,10 @@ function generateCode() {
 
 function initClient() {
   if (!client) {
+    myClientId = 'p-' + Math.random().toString(36).substring(2, 9);
     client = new Ably.Realtime({
       key: ABLY_KEY,
-      clientId: 'p-' + Math.random().toString(36).substring(2, 9)
+      clientId: myClientId
     });
   }
   return client;
@@ -28,6 +30,8 @@ const socket = {
     if (channel) { channel.unsubscribe(); channel = null; }
     myPlayerIndex = null;
     currentCode = null;
+    client = null;
+    myClientId = null;
   },
 
   emit(event, data) {
@@ -36,16 +40,29 @@ const socket = {
       currentCode = code;
       myPlayerIndex = 0;
       const maxPlayers = (data && data.maxPlayers) ? data.maxPlayers : 2;
+      let joinedCount = 1;
+
       channel = initClient().channels.get('brd-' + code);
-      channel.subscribe('ping', () => {
-        channel.unsubscribe('ping');
-        channel.publish('pong', { maxPlayers, playerIndex: 1 });
-        socket._trigger('playerJoined', { count: 2, maxPlayers });
-        socket._trigger('startGame', { code, playerIndex: 0 });
+
+      channel.subscribe('join-request', (msg) => {
+        if (joinedCount >= maxPlayers) return;
+        const joinerClientId = msg.data.clientId;
+        const assignedIndex = joinedCount;
+        joinedCount++;
+
+        channel.publish('join-ack', { clientId: joinerClientId, playerIndex: assignedIndex, maxPlayers });
+        socket._trigger('playerJoined', { count: joinedCount, maxPlayers });
+
+        if (joinedCount === maxPlayers) {
+          channel.unsubscribe('join-request');
+          channel.publish('start', { code, maxPlayers });
+          channel.subscribe('move', (msg) => {
+            if (msg.data.from !== myPlayerIndex) socket._trigger('opponentMove', msg.data.move);
+          });
+          socket._trigger('startGame', { code, playerIndex: 0 });
+        }
       });
-      channel.subscribe('move', (msg) => {
-        if (msg.data.from !== myPlayerIndex) socket._trigger('opponentMove', msg.data.move);
-      });
+
       socket._trigger('gameCreated', { code });
       socket._trigger('playerJoined', { count: 1, maxPlayers });
     }
@@ -53,22 +70,30 @@ const socket = {
     if (event === 'joinGame') {
       const code = data.code;
       currentCode = code;
-      myPlayerIndex = 1;
-      let started = false;
-      channel = initClient().channels.get('brd-' + code);
-      channel.subscribe('pong', (msg) => {
-        if (started) return;
-        started = true;
-        const { maxPlayers, playerIndex } = msg.data;
-        myPlayerIndex = playerIndex;
-        socket._trigger('playerJoined', { count: 2, maxPlayers });
-        socket._trigger('startGame', { code, playerIndex });
+      initClient(); // ensure myClientId is set
+
+      channel = client.channels.get('brd-' + code);
+
+      channel.subscribe('join-ack', (msg) => {
+        if (msg.data.clientId !== myClientId) return;
+        myPlayerIndex = msg.data.playerIndex;
+        const { maxPlayers } = msg.data;
+        socket._trigger('playerJoined', { count: myPlayerIndex + 1, maxPlayers });
       });
-      channel.subscribe('move', (msg) => {
-        if (msg.data.from !== myPlayerIndex) socket._trigger('opponentMove', msg.data.move);
+
+      channel.subscribe('start', (msg) => {
+        channel.unsubscribe('join-ack');
+        channel.unsubscribe('start');
+        channel.subscribe('move', (m) => {
+          if (m.data.from !== myPlayerIndex) socket._trigger('opponentMove', m.data.move);
+        });
+        socket._trigger('startGame', { code: msg.data.code, playerIndex: myPlayerIndex });
       });
+
       channel.on((stateChange) => {
-        if (stateChange.current === 'attached') channel.publish('ping', { from: 'joiner' });
+        if (stateChange.current === 'attached') {
+          channel.publish('join-request', { clientId: myClientId });
+        }
       });
       channel.attach();
     }

@@ -17,6 +17,7 @@ export default function MainMenu() {
   const [pendingCode, setPendingCode] = useState(null);
   const [playerCount, setPlayerCount] =useState(1);
   const [joiningPending,setJoiningPending] = useState(false);
+  const [maxPlayers, setMaxPlayers] = useState(2);
   const [lobbyError, setLobbyError] = useState('');
 
   //Array used to store game ids, titles and image thumbnail
@@ -53,6 +54,7 @@ export default function MainMenu() {
     setJoinCode('');
     setPlayerCount(1);
     setJoiningPending(false);
+    setMaxPlayers(2);
   };
 //Sets online to false and goes to the game page
   const handlePlayLocal = () => {
@@ -65,7 +67,7 @@ export default function MainMenu() {
 // Opens the websocket connection and sends a request to the server, if its ludo it allows 4 players.
   const handleCreate = () => {
     socket.connect();
-    socket.emit('createGame', isLudo? {maxPlayers: 4}: {});
+    socket.emit('createGame', isLudo ? {maxPlayers} : {});
     socket.once('gameCreated', ({code }) => 
     {
       setPendingCode(code); //store the code the server relayed
@@ -194,17 +196,29 @@ export default function MainMenu() {
                   <div className="codeDisplay">{pendingCode}</div>
                   <p className="waitingLabel">
                     {isLudo
-                      ? `Waiting for players (${playerCount}/4)...`
+                      ? `Waiting for players (${playerCount}/${maxPlayers})...`
                       : 'Waiting for opponent to join...'}
                   </p>
                 </div>
               ) : joiningPending ? (
                 <div className="pendingCode">
                   <p className="pendingLabel">Joined! Waiting for more players...</p>
-                  <p className="waitingLabel">Players ready : {playerCount} / 4</p>
+                  <p className="waitingLabel">Players ready : {playerCount} / {isLudo ? maxPlayers : 2}</p>
                 </div>
               ) : (
                 <>
+                  {isLudo && (
+                    <div className="playerCountSelector">
+                      <p>Number of players:</p>
+                      {[2, 3, 4].map(n => (
+                        <button
+                          key={n}
+                          className={`countBtn${maxPlayers === n ? ' selected' : ''}`}
+                          onClick={() => setMaxPlayers(n)}
+                        >{n}</button>
+                      ))}
+                    </div>
+                  )}
                   <button className="navMultiplayer lobbyBtn" onClick={handleCreate}>
                     Create Game
                   </button>
