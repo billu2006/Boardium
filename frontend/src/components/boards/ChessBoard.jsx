@@ -1,24 +1,38 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import "./ChessBoard.css";
-import {
-  initialBoard,
-  pieceSymbols,
-  getPieceColor,
-  isWhitePiece,
-  getPieceMoves,
-  isInCheck,
-  findKing,
-} from "../games/ChessGame";
+import { ChessRules } from "../games/ChessGame";
 import socket from "../../socket";
 
+const pieceSymbols = {
+  K: "\u2654", Q: "\u2655", R: "\u2656", B: "\u2657", N: "\u2658", P: "\u2659",
+  k: "\u265A", q: "\u265B", r: "\u265C", b: "\u265D", n: "\u265E", p: "\u265F",
+};
+
+
+// convert board coordinates to chess notation
 function toAlg(row, col) {
   return String.fromCharCode(97 + col) + (8 - row);
 }
 
-function buildNotation(piece, fromRow, fromCol, toRow, toCol, captured, nextInCheck, isMate, promotedPiece) {
+
+// building move notation for move history
+function buildNotation(
+  piece,
+  fromRow,
+  fromCol,
+  toRow,
+  toCol,
+  captured,
+  nextInCheck,
+  isMate,
+  promotedPiece
+) {
   const type = piece.toUpperCase();
   const dest = toAlg(toRow, toCol);
+
+
+  // castling
   if (type === "K" && Math.abs(toCol - fromCol) === 2)
     return toCol > fromCol ? "O-O" : "O-O-O";
   let n = type !== "P"
@@ -26,40 +40,62 @@ function buildNotation(piece, fromRow, fromCol, toRow, toCol, captured, nextInCh
     : (captured ? String.fromCharCode(97 + fromCol) : "");
   if (captured) n += "x";
   n += dest;
+  
+  // pawn promotion
   if (promotedPiece) n += "=" + (pieceSymbols[promotedPiece] ?? promotedPiece);
+
+  // checkmate / check
   if (isMate) n += "#";
   else if (nextInCheck) n += "+";
   return n;
 }
 
 export default function ChessBoard() {
+
+
   const location = useLocation();
-  const { color, online } = location.state || {};
+  const { colour, online } = location.state || {};
 
-  const myColor = color === "r" ? "white" : "black";
 
-  const [board, setBoard] = useState(() => initialBoard.map(r => [...r]));
+
+  // online mode sends red/black from lobby
+  const myColor = colour === "r" ? "white" : "black";
+
+
+  // board + game state
+  const [board, setBoard] = useState(() => ChessRules.getInitialBoard());
   const [turn, setTurn] = useState("white");
   const [selected, setSelected] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
+
+  // captured pieces
   const [capturedByWhite, setCapturedByWhite] = useState([]);
   const [capturedByBlack, setCapturedByBlack] = useState([]);
+
+  // move history list
   const [moveHistory, setMoveHistory] = useState([]);
+
+  // castling rights tracker
   const [castlingRights, setCastlingRights] = useState({
     whiteKingSide: true, whiteQueenSide: true,
     blackKingSide: true, blackQueenSide: true,
   });
   const [enPassantTarget, setEnPassantTarget] = useState(null);
+
+  // end game & alerts
   const [winner, setWinner] = useState(null);
   const [inCheck, setInCheck] = useState(false);
   const [promotionPending, setPromotionPending] = useState(null);
   const [lastMove, setLastMove] = useState(null);
   const [statusMsg, setStatusMsg] = useState("");
 
+  // offline = always allowed to move
   const isMyTurn = !online || turn === myColor;
 
+
+  // offline = always allowed to move
   const resetGame = () => {
-    setBoard(initialBoard.map(r => [...r]));
+    setBoard(ChessRules.getInitialBoard());
     setTurn("white");
     setSelected(null);
     setValidMoves([]);
@@ -77,27 +113,34 @@ export default function ChessBoard() {
 
   const executeMoveRef = useRef(null);
 
+    // handle board clicks
   const handleSquareClick = (row, col) => {
     if (winner || promotionPending) return;
     if (!isMyTurn) return;
     const piece = board[row][col];
-    const color = getPieceColor(piece);
+    const color = ChessRules.getPiececolour(piece);
 
     if (selected) {
       const [sr, sc] = selected;
+
+      // clicked a legal move 
       if (validMoves.some(([r, c]) => r === row && c === col)) {
         const isPawn = board[sr][sc]?.toUpperCase() === "P";
         const isPromoRow = (turn === "white" && row === 0) || (turn === "black" && row === 7);
         const willPromote = isPawn && isPromoRow;
         executeMove(sr, sc, row, col);
+
+        // send online move unless promotion waits for piece choice
         if (online && !willPromote) {
           socket.emit("move", { fromRow: sr, fromCol: sc, toRow: row, toCol: col });
         }
         return;
       }
+
+      // switch selection to another
       if (piece && color === turn) {
         setSelected([row, col]);
-        setValidMoves(getPieceMoves(board, row, col, { castlingRights, enPassantTarget }));
+        setValidMoves(ChessRules.getPieceMoves(board, row, col, { castlingRights, enPassantTarget }));
         return;
       }
       setSelected(null);
@@ -105,17 +148,21 @@ export default function ChessBoard() {
       return;
     }
 
+
+    // no selection pick own
     if (piece && color === turn) {
       setSelected([row, col]);
-      setValidMoves(getPieceMoves(board, row, col, { castlingRights, enPassantTarget }));
+      setValidMoves(ChessRules.getPieceMoves(board, row, col, { castlingRights, enPassantTarget }));
     }
   };
 
+
+  // actual move logic
   const executeMove = (fromRow, fromCol, toRow, toCol, promotionType = null) => {
     const nb = board.map(r => [...r]);
     const piece = nb[fromRow][fromCol];
     const type = piece.toUpperCase();
-    const color = getPieceColor(piece);
+    const color = ChessRules.getPiececolour(piece);
     let captured = nb[toRow][toCol];
     const newCR = { ...castlingRights };
     let newEP = null;
@@ -138,6 +185,8 @@ export default function ChessBoard() {
       if (color === "white") { newCR.whiteKingSide = false; newCR.whiteQueenSide = false; }
       else                   { newCR.blackKingSide = false; newCR.blackQueenSide = false; }
     }
+
+    // disable castling 
     if (type === "R") {
       if (fromRow === 7 && fromCol === 7) newCR.whiteKingSide = false;
       if (fromRow === 7 && fromCol === 0) newCR.whiteQueenSide = false;
@@ -152,6 +201,8 @@ export default function ChessBoard() {
     if (type === "P" && Math.abs(toRow - fromRow) === 2)
       newEP = [(fromRow + toRow) / 2, toCol];
 
+
+    // promotion
     if (type === "P" && (toRow === 0 || toRow === 7)) {
       if (captured) {
         if (color === "white") setCapturedByWhite(p => [...p, captured]);
@@ -177,13 +228,15 @@ export default function ChessBoard() {
 
   executeMoveRef.current = executeMove;
 
+
+  // when finishes turn checks for  mate/stalemate
   const finalize = (nb, piece, fromRow, fromCol, toRow, toCol, captured, newCR, newEP, color, promotedPiece) => {
     const nextTurn = color === "white" ? "black" : "white";
-    const nextCheck = isInCheck(nb, nextTurn, newCR, newEP);
+    const nextCheck = ChessRules.isInCheck(nb, nextTurn, newCR, newEP);
     const hasLegal = nb.some((row, r) =>
       row.some((p, c) =>
-        p && getPieceColor(p) === nextTurn &&
-        getPieceMoves(nb, r, c, { castlingRights: newCR, enPassantTarget: newEP }).length > 0
+        p && ChessRules.getPiececolour(p) === nextTurn &&
+        ChessRules.getPieceMoves(nb, r, c, { castlingRights: newCR, enPassantTarget: newEP }).length > 0
       )
     );
 
@@ -222,6 +275,7 @@ export default function ChessBoard() {
     }
   };
 
+  // socket listeners
   useEffect(() => {
     if (!online) return;
 
@@ -249,7 +303,7 @@ export default function ChessBoard() {
   }
 
   const validDestSet = new Set(validMoves.map(([r, c]) => `${r},${c}`));
-  const kingPos = inCheck ? findKing(board, turn) : null;
+  const kingPos = inCheck ? ChessRules.findKing(board, turn) : null;
   const checkedKey = kingPos ? `${kingPos[0]},${kingPos[1]}` : null;
 
   return (
@@ -326,7 +380,7 @@ export default function ChessBoard() {
                 );
                 const isCheckSq = checkedKey === `${rIdx},${cIdx}`;
                 const isClickable = !winner && !promotionPending && isMyTurn &&
-                  ((piece && getPieceColor(piece) === turn) || isValidDest);
+                  ((piece && ChessRules.getPiececolour(piece) === turn) || isValidDest);
 
                 let cls = `chessSq ${isLight ? "light" : "dark"}`;
                 if (isSel) cls += " selected";
@@ -339,7 +393,7 @@ export default function ChessBoard() {
                     {isValidDest && !piece && <div className="chessDot" />}
                     {isValidDest && piece && <div className="chessCaptureRing" />}
                     {piece && (
-                      <span className={`chessPiece ${isWhitePiece(piece) ? "wp" : "bp"}`}>
+                      <span className={`chessPiece ${ChessRules.getPiececolour(piece) === "white" ? "wp" : "bp"}`}>
                         {pieceSymbols[piece]}
                       </span>
                     )}

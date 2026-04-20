@@ -10,7 +10,7 @@ const express        = require('express');
 const router         = express.Router();
 const db             = require('../../database/db');
 const Game           = require('../../../engine/Game');
-const CheckersRules  = require('../../../games/Checkers');
+const CheckersRules  = require('../../../frontend/src/components/games/CheckersGame').default;
 
 // Map game_type strings to their rules classes.
 // Add Chess, Ludo, ConnectFour here as they are implemented.

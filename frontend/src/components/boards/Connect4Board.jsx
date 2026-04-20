@@ -5,28 +5,42 @@ import ConnectFourRules from "../games/Connect4Game";
 import socket from "../../socket";
 
 const rules = new ConnectFourRules();
-
 const playerEmojis = {
-  r: "🔴",
-  y: "🟡",
+  red: "🔴",
+  yellow: "🟡",
 };
 
+// Highlight the 4 winning disc after player win
 function getWinningCells(board) {
   const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
-  for (let row = 0; row < 6; row++) {
-    for (let col = 0; col < 7; col++) {
-      const player = board[row * 7 + col];
-      if (!player) continue;
-      for (const [dr, dc] of directions) {
-        const cells = [];
-        for (let i = 0; i < 4; i++) {
-          const r = row + dr * i;
-          const c = col + dc * i;
-          if (r < 0 || r >= 6 || c < 0 || c >= 7) break;
-          if (board[r * 7 + c] !== player) break;
-          cells.push(r * 7 + c);
+  for (let rowIndex = 0; rowIndex < 6; rowIndex++) {
+
+    for (let columnIndex = 0; columnIndex < 7; columnIndex++) {
+      const player = board[rowIndex * 7 + columnIndex];
+
+      if (player === null) {
+        continue;
+      }
+
+      for (const [rowStep, columnStep] of directions) {
+        const winningCellIndexes  = [];
+
+        for (let step = 0; step < 4; step++) {
+          const newRow = rowIndex + rowStep * step;
+          const newColumn = columnIndex + columnStep * step;
+
+          if (newRow < 0 || newRow >= 6 || newColumn < 0 || newColumn >= 7) {
+            break;
+          }
+          if (board[newRow * 7 + newColumn] !== player) {
+            break;
+          }
+
+          winningCellIndexes.push(newRow * 7 + newColumn);
         }
-        if (cells.length === 4) return cells;
+        if (winningCellIndexes .length === 4) {
+          return winningCellIndexes ;
+        }
       }
     }
   }
@@ -35,25 +49,26 @@ function getWinningCells(board) {
 
 export default function Connect4Board() {
   const location = useLocation();
-  const { color, online } = location.state || {};
-
+  const { colour, online } = location.state || {};
   const [gameState, setGameState] = useState(() => rules.getInitialState());
   const [statusMsg, setStatusMsg] = useState("");
+  const myColour = colour === "r" ? "red" : "yellow";
 
-  const myColor = color === "r" ? "r" : "y";
-  const isMyTurn = !online || gameState.turn === myColor;
+  const isMyTurn = !online || gameState.turn === myColour;
+  const isOver  = rules.isGameOver(gameState);
+  
 
-  const isOver = rules.isGameOver(gameState);
-  const winningCells =
-    isOver && gameState.winner !== "draw"
-      ? getWinningCells(gameState.board)
-      : [];
+  // Get winning disc cells for highlight to display
+  const winningCells = isOver && gameState.winner !== "draw" ? getWinningCells(gameState.board) : [];
 
+  // Control all the online opponent moves include disconnect
   useEffect(() => {
-    if (!online) return;
+    if (online === false) {
+       return;
+    }
 
     socket.on("opponentMove", (move) => {
-      setGameState((prev) => rules.applyMove(prev, move));
+      setGameState((previousState) => rules.applyMove(previousState, move));
     });
 
     socket.on("opponentDisconnected", () => {
@@ -64,13 +79,23 @@ export default function Connect4Board() {
       socket.off("opponentMove");
       socket.off("opponentDisconnected");
     };
+
   }, [online]);
 
-  const handleColumnClick = (col) => {
-    if (isOver || !isMyTurn || !rules.isValidMove(gameState, { col })) return;
-    const move = { col };
+  // Controll all the column click for the disc drop
+  const handleColumnClick = (columnIndex) => {
+    const isValidMove = rules.isValidMove(gameState, {columnIndex: columnIndex});
+    if (isOver === true || isMyTurn === false || isValidMove === false) {
+      return;
+    }
+
+    const move = {columnIndex: columnIndex};
     setGameState(rules.applyMove(gameState, move));
-    if (online) socket.emit("move", move);
+
+    // Send move action if is online mode
+    if (online === true) {
+      socket.emit("move", move);
+    }
   };
 
   const resetGame = () => {
@@ -88,37 +113,50 @@ export default function Connect4Board() {
 
       {online && (
         <div className="c4OnlineIndicator">
-          You are playing as {playerEmojis[myColor]}{" "}
-          {myColor === "r" ? "Red" : "Yellow"}
+          You are playing as {playerEmojis[myColour]}{" "}
+          {myColour === "red" ? "Red" : "Yellow"}
         </div>
       )}
 
+
+      {/* Shows current player's turn or winner if game ended */}
       <div className="c4StatusBar">
         {gameState.winner ? (
+
           <span className="c4WinnerText">
             {gameState.winner === "draw" ? (
-              "It's a Draw! 🤝"
+              "Its a Draw!"
+
+
             ) : (
               <>
                 <span className="c4Emoji">
                   {playerEmojis[gameState.winner]}
+
                 </span>
-                {gameState.winner === "r" ? "Red Wins!" : "Yellow Wins!"}
+                {gameState.winner === "red" ? "Red Wins!" : "Yellow Wins!"}
               </>
             )}
           </span>
+
         ) : (
+
+
+          // Shows player's turn for online mode
           <span className="c4TurnText">
             <span className="c4Emoji">{playerEmojis[gameState.turn]}</span>
             {online
               ? isMyTurn
                 ? "Your turn"
                 : "Opponent's turn"
-              : gameState.turn === "r"
+              : gameState.turn === "red"
               ? "Red's turn"
               : "Yellow's turn"}
+
           </span>
         )}
+
+
         {!online && (
           <button className="c4NewGameBtn" onClick={resetGame}>
             New Game
@@ -126,28 +164,33 @@ export default function Connect4Board() {
         )}
       </div>
 
+
+
       <div className="c4BoardOuter">
         <div className="c4BoardInner">
-          {Array.from({ length: 6 }, (_, row) => (
-            <div key={row} className="c4Row">
-              {Array.from({ length: 7 }, (_, col) => {
-                const idx = row * 7 + col;
+
+          {Array.from({length: 6}, (_, rowIndex) => (
+            <div key={rowIndex} className="c4Row">
+              {Array.from({ length: 7}, (_, columnIndex) => {
+                const idx = rowIndex * 7+columnIndex;
                 const cell = gameState.board[idx];
+
+                // Highlight the 4 connected disc on the board
                 const isWinning = winningCells.includes(idx);
-                const colFull = !rules.isValidMove(gameState, { col });
-                const disabled = isOver || colFull || !isMyTurn;
+
+                // Disable the column if is full or not player's turn or game is over
+                const colFull = rules.isValidMove(gameState, {columnIndex: columnIndex}) === false;
+                const disabled = isOver === true || colFull === true || isMyTurn === false;
 
                 return (
                   <div
-                    key={col}
+                    key={columnIndex}
                     className={`c4Cell${disabled ? " disabled" : ""}`}
-                    onClick={() => handleColumnClick(col)}
+                    onClick={() => handleColumnClick(columnIndex)}
                   >
                     {cell && (
                       <div
-                        className={`c4Disc ${cell}${
-                          isWinning ? " winning" : ""
-                        }`}
+                        className={`c4Disc ${cell}${isWinning ? " winning" : ""}`}
                       />
                     )}
                   </div>

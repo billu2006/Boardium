@@ -7,14 +7,21 @@ import socket from "../../socket";
 const playerLabels = ["🔴 Red", "🔵 Blue", "🟢 Green", "🟡 Yellow"];
 
 const colorEmojis = {
-  red: "🔴", blue: "🔵", green: "🟢", yellow: "🟡",
+  red: "🔴",
+  blue: "🔵",
+  green: "🟢",
+  yellow: "🟡",
 };
 
 const LudoBoard = () => {
+
+  //get values from the past page safely
+
   const location = useLocation();
-  const { playerIndex: myPlayerIndex, online } = location.state || {};
+  const {playerIndex: myPlayerIndex, online } = location.state || {};
   const [statusMsg, setStatusMsg] = useState("");
 
+  // references for the latest handlers
   const applyExternalRollRef = useRef(null);
   const applyExternalMoveRef = useRef(null);
 
@@ -25,7 +32,7 @@ const LudoBoard = () => {
     resetGame,
   } = useLudoGame({
     onRoll: online ? (value) => socket.emit("move", { type: "roll", value }) : undefined,
-    onMove: online ? (ti) => socket.emit("move", { type: "move", tokenIndex: ti }) : undefined,
+    onMove: online ? (tokenI) => socket.emit("move", { type: "move", tokenIndex: tokenI }) : undefined,
   });
 
   applyExternalRollRef.current = applyExternalRoll;
@@ -33,12 +40,19 @@ const LudoBoard = () => {
 
   const isMyTurn = !online || gameState.currentPlayer === myPlayerIndex;
 
+  //listen to the server
   useEffect(() => {
     if (!online) return;
 
     socket.on("opponentMove", (data) => {
-      if (data.type === "roll") applyExternalRollRef.current(data.value);
-      else if (data.type === "move") applyExternalMoveRef.current(data.tokenIndex);
+      if (data.type === "roll")
+      {
+        applyExternalRollRef.current(data.value); // waits for server for the other players move and apply
+      }
+      else if (data.type === "move") 
+      {
+        applyExternalMoveRef.current(data.tokenIndex); // do the same for roll
+      }
     });
 
     socket.on("opponentDisconnected", () => {
@@ -51,9 +65,13 @@ const LudoBoard = () => {
     };
   }, [online]);
 
-  const handleTokenClick = (pi, ti) => {
-    if (online && pi !== myPlayerIndex) return;
-    moveToken(pi, ti);
+  //if the game is onine and the clicked token isnt yours then ignore the click to prevent cheating.
+  const handleTokenClick = (playerI, tokenI) => {
+    if (online && playerI !== myPlayerIndex)
+    {
+      return;
+    }
+    moveToken(playerI, tokenI);
   };
 
   return (
@@ -101,8 +119,8 @@ const LudoBoard = () => {
 
         <div className="boardWrap">
           <div className="board">
-            {Array.from({ length: 15 }).map((_, r) =>
-              Array.from({ length: 15 }).map((_, c) => {
+            {Array.from({length:15}).map((_, r) =>
+              Array.from({length:15}).map((_, c) => {
                 const x = c * 40;
                 const y = r * 40;
                 let color = "#f3f4f6";
@@ -158,29 +176,29 @@ const LudoBoard = () => {
             <div className="spawnArea bottomLeft" />
             <div className="spawnArea bottomRight" />
 
-            {homeZones.map((zone, pi) =>
+            {homeZones.map((zone, playerI) =>
               zone.map(([r, c], zi) => (
                 <div
-                  key={`spawn-${pi}-${zi}`}
+                  key={`spawn-${playerI}-${zi}`}
                   className="spawnBox"
                   style={{ left: c * 40, top: r * 40 }}
                 />
               ))
             )}
 
-            {gameState.players.map((player, pi) =>
-              player.tokens.map((token, ti) => {
-                const [r, c] = getPosition(pi, ti);
-                const canMove = canMoveToken(pi, ti) && (!online || pi === myPlayerIndex);
+            {gameState.players.map((player, playerI) =>
+              player.tokens.map((token, tokenI) => {
+                const [r, c] = getPosition(playerI, tokenI);
+                const canMove = canMoveToken(playerI, tokenI) && (!online || playerI === myPlayerIndex);
                 return (
                   <div
-                    key={`${pi}-${ti}`}
+                    key={`${playerI}-${tokenI}`}
                     className="token"
-                    onClick={() => handleTokenClick(pi, ti)}
+                    onClick={() => handleTokenClick(playerI, tokenI)}
                     style={{
                       left: c * 40 + 10,
                       top: r * 40 + 10,
-                      background: colors[pi],
+                      background: colors[playerI],
                       cursor: canMove ? "pointer" : "default",
                       boxShadow: canMove ? "0 0 0 2px #242424" : "none",
                     }}

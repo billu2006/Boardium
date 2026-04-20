@@ -9,17 +9,31 @@ export default function GamePage() {
   const { gameType } = useParams();
   const navigate = useNavigate();
 
+
+  // Pick the correct game board to display
   const renderGameBoard = () => {
-    if (gameType === 'chess') return <ChessBoard />;
-    if (gameType === 'checkers') return <CheckersBoard />;
-    if (gameType === 'ludo') return <LudoBoard />;
-    if (gameType === 'connect4') return <Connect4Board />;
+    if (gameType === 'chess') {
+      return <ChessBoard />;
+    }
+
+    if (gameType === 'checkers') {
+      return <CheckersBoard />;
+    }
+
+    if (gameType === 'ludo') {
+      return <LudoBoard />;
+    }
+
+    if (gameType === 'connect4') {
+      return <Connect4Board />;
+    }
 
     return <h2>Game not found!</h2>;
   };
 
   return (
     <div className="gameLayout">
+      {/* Return back to home page */}
       <button className="backBtn" onClick={() => navigate("/")}>← Back</button>
 
       <main className="boardArea">

@@ -9,6 +9,27 @@
   gap: 16px;
 }
 
+.c4Disc {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid #222222;
+}
+
+.c4Disc.red {
+  background: #c0392b;
+  border: 3px solid #8e0000;
+}
+
+.c4Disc.yellow {
+  background: #f1c40f;
+  border: 3px solid #ae8d0b;
+}
+
+.c4Disc.winning {
+  outline: 4px solid #17e800;
+}
+
 .gameTitle {
   margin: 0;
   font-size: 2.6rem;
@@ -26,7 +47,9 @@
   border-radius: 12px;
   padding: 10px 24px;
   backdrop-filter: blur(10px);
+
 }
+
 
 .c4WinnerText {
   font-size: 1.1em;
@@ -46,6 +69,7 @@
   line-height: 1;
 }
 
+
 .c4Emoji {
   font-size: 1.4rem;
   display: inline-flex;
@@ -53,7 +77,9 @@
   justify-content: center;
   line-height: 1;
   flex-shrink: 0;
+
 }
+
 
 .c4DisconnectBanner {
   background: rgba(255, 80, 80, 0.15);
@@ -63,6 +89,8 @@
   color: salmon;
   font-size: 0.9em;
 }
+
+
 
 .c4OnlineIndicator {
   font-size: 0.8em;
@@ -130,31 +158,13 @@
   cursor: default;
 }
 
-.c4Disc {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 3px solid #222222;
-}
 
-.c4Disc.r {
-  background: #c0392b;
-  border: 3px solid #8e0000;
-}
-
-.c4Disc.y {
-  background: #f1c40f;
-  border: 3px solid #ae8d0b;
-}
-
-.c4Disc.winning {
-  outline: 4px solid #17e800;
-}
 
 @keyframes c4Pulse {
   from { transform: scale(1); }
   to   { transform: scale(1.06); }
 }
+
 
 @media (max-width: 600px) {
   .c4Cell {
