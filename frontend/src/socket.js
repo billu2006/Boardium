@@ -40,26 +40,37 @@ const socket = {
       currentCode = code;
       myPlayerIndex = 0;
       const maxPlayers = (data && data.maxPlayers) ? data.maxPlayers : 2;
+      const joined = new Set(); // track by clientId to avoid duplicates
       let joinedCount = 1;
 
       channel = initClient().channels.get('brd-' + code);
 
       channel.subscribe('join-request', (msg) => {
-        if (joinedCount >= maxPlayers) return;
         const joinerClientId = msg.data.clientId;
+
+        // ignore if already joined or room full
+        if (joined.has(joinerClientId)) return;
+        if (joinedCount >= maxPlayers) return;
+
+        joined.add(joinerClientId);
         const assignedIndex = joinedCount;
         joinedCount++;
 
-        channel.publish('join-ack', { clientId: joinerClientId, playerIndex: assignedIndex, maxPlayers });
+        channel.publish('join-ack', {
+          clientId: joinerClientId,
+          playerIndex: assignedIndex,
+          maxPlayers
+        });
+
         socket._trigger('playerJoined', { count: joinedCount, maxPlayers });
 
         if (joinedCount === maxPlayers) {
           channel.unsubscribe('join-request');
           channel.publish('start', { code, maxPlayers });
-          channel.subscribe('move', (msg) => {
-            if (msg.data.from !== myPlayerIndex) socket._trigger('opponentMove', msg.data.move);
+          channel.subscribe('move', (m) => {
+            if (m.data.from !== myPlayerIndex) socket._trigger('opponentMove', m.data.move);
           });
-          socket._trigger('startGame', { code, playerIndex: 0 });
+          socket._trigger('startGame', { code, playerIndex: 0, maxPlayers });
         }
       });
 
@@ -70,12 +81,15 @@ const socket = {
     if (event === 'joinGame') {
       const code = data.code;
       currentCode = code;
-      initClient(); // ensure myClientId is set
+      initClient();
 
       channel = client.channels.get('brd-' + code);
+      let ackReceived = false;
 
       channel.subscribe('join-ack', (msg) => {
         if (msg.data.clientId !== myClientId) return;
+        if (ackReceived) return;
+        ackReceived = true;
         myPlayerIndex = msg.data.playerIndex;
         const { maxPlayers } = msg.data;
         socket._trigger('playerJoined', { count: myPlayerIndex + 1, maxPlayers });
@@ -87,11 +101,13 @@ const socket = {
         channel.subscribe('move', (m) => {
           if (m.data.from !== myPlayerIndex) socket._trigger('opponentMove', m.data.move);
         });
-        socket._trigger('startGame', { code: msg.data.code, playerIndex: myPlayerIndex });
+        socket._trigger('startGame', { code: msg.data.code, playerIndex: myPlayerIndex, maxPlayers: msg.data.maxPlayers });
       });
 
+      let joinPublished = false;
       channel.on((stateChange) => {
-        if (stateChange.current === 'attached') {
+        if (stateChange.current === 'attached' && !joinPublished) {
+          joinPublished = true;
           channel.publish('join-request', { clientId: myClientId });
         }
       });

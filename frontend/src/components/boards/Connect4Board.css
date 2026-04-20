@@ -165,21 +165,3 @@
   from { transform: scale(1); }
   to   { transform: scale(1.06); }
 }
-
-
-
-
-  .c4Disc {
-    width: 36px;
-    height: 36px;
-  }
-
-  .c4Row,
-  .c4BoardInner {
-    gap: 5px;
-  }
-
-  .c4BoardOuter {
-    padding: 8px;
-  }
-}

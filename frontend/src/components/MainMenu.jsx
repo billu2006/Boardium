@@ -84,7 +84,7 @@ export default function MainMenu() {
       const gamePath = selectedGame.toLowerCase().replace(/\s+/g,'');
       if (isLudo) 
       {
-        navigate(`/game/${gamePath}`,{state:{code, playerIndex, online: true}});
+        navigate(`/game/${gamePath}`,{state:{code, playerIndex, online: true, maxPlayers}});
       } 
       else
       {
@@ -117,12 +117,12 @@ export default function MainMenu() {
     });
 
     //start the game and if ludo assign certain colour
-    socket.once('startGame', ({code, playerIndex}) => {
+    socket.once('startGame', ({code, playerIndex, maxPlayers: mp}) => {
       socket.off('playerJoined');
       const gamePath = selectedGame.toLowerCase().replace(/\s+/g, '');
       if (isLudo)
       {
-        navigate(`/game/${gamePath}`,{state: {code, playerIndex, online: true}});
+        navigate(`/game/${gamePath}`,{state: {code, playerIndex, online: true, maxPlayers: mp}});
       }
       else
       {

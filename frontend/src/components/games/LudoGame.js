@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 // a react hook to recieve callbacks
-export const useLudoGame = ({ onRoll, onMove } = {}) => {
+export const useLudoGame = ({ onRoll, onMove, numPlayers = 4 } = {}) => {
   const initialState = () => ({
     currentPlayer: 0,
     diceValue:null,
@@ -144,7 +144,7 @@ export const useLudoGame = ({ onRoll, onMove } = {}) => {
             diceRolling: false,
             canRoll: true,
             extraTurn: false,
-            currentPlayer: (prev.currentPlayer + 1) % 4, // rest dice and go to next player
+            currentPlayer: (prev.currentPlayer + 1) % numPlayers, // rest dice and go to next player
           };
         }
 
@@ -230,7 +230,7 @@ export const useLudoGame = ({ onRoll, onMove } = {}) => {
     //update the game state after a move
     setGameState(prev => ({
       ...prev, players,
-      currentPlayer: dice === 6 ? player : (player + 1) % 4, //used an optional, if the dice is 6 then the player is still the same player
+      currentPlayer: dice === 6 ? player : (player + 1) % numPlayers, //used an optional, if the dice is 6 then the player is still the same player
       diceValue: null, lastRoll: dice, canRoll: true, extraTurn: false,
     }));
     if (onMove) onMove(tokenIndex); //send the move to the server
@@ -259,7 +259,7 @@ export const useLudoGame = ({ onRoll, onMove } = {}) => {
           ...prev,
           diceValue: null, lastRoll: value, diceRolling: false,
           canRoll: true, extraTurn: false,
-          currentPlayer: (prev.currentPlayer + 1) % 4,
+          currentPlayer: (prev.currentPlayer + 1) % numPlayers,
         };
       }
 
@@ -325,7 +325,7 @@ export const useLudoGame = ({ onRoll, onMove } = {}) => {
 
       return {
         ...prev, players,
-        currentPlayer: dice === 6 ? player : (player + 1) % 4,
+        currentPlayer: dice === 6 ? player : (player + 1) % numPlayers,
         diceValue: null, lastRoll: dice,canRoll: true, extraTurn: false,
       };
     });

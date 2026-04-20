@@ -18,7 +18,8 @@ const LudoBoard = () => {
   //get values from the past page safely
 
   const location = useLocation();
-  const {playerIndex: myPlayerIndex, online } = location.state || {};
+  const {playerIndex: myPlayerIndex, online, maxPlayers: numPlayers } = location.state || {};
+  const activePlayers = numPlayers || 4;
   const [statusMsg, setStatusMsg] = useState("");
   const [boardScale, setBoardScale] = useState(1);
 
@@ -45,6 +46,7 @@ const LudoBoard = () => {
     applyExternalRoll, applyExternalMove,
     resetGame,
   } = useLudoGame({
+    numPlayers: activePlayers,
     onRoll: online ? (value) => socket.emit("move", { type: "roll", value }) : undefined,
     onMove: online ? (tokenI) => socket.emit("move", { type: "move", tokenIndex: tokenI }) : undefined,
   });
@@ -180,17 +182,17 @@ const LudoBoard = () => {
 
             <div className="centerTriangles">
               <div className="triangle triangleTop" />
-              <div className="triangle triangleRight" />
-              <div className="triangle triangleBottom" />
-              <div className="triangle triangleLeft" />
+              {activePlayers > 1 && <div className="triangle triangleRight" />}
+              {activePlayers > 2 && <div className="triangle triangleBottom" />}
+              {activePlayers > 3 && <div className="triangle triangleLeft" />}
             </div>
 
             <div className="spawnArea topLeft" />
-            <div className="spawnArea topRight" />
-            <div className="spawnArea bottomLeft" />
-            <div className="spawnArea bottomRight" />
+            {activePlayers > 1 && <div className="spawnArea topRight" />}
+            {activePlayers > 2 && <div className="spawnArea bottomLeft" />}
+            {activePlayers > 3 && <div className="spawnArea bottomRight" />}
 
-            {homeZones.map((zone, playerI) =>
+            {homeZones.slice(0, activePlayers).map((zone, playerI) =>
               zone.map(([r, c], zi) => (
                 <div
                   key={`spawn-${playerI}-${zi}`}
