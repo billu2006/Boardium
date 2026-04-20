@@ -1,3 +1,6 @@
+//TODO:
+// sensable var names
+
 export class ChessRules {
 
   //creats the initial board
